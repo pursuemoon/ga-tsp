@@ -1,0 +1,7 @@
+*.iml
+*.jar
+.idea/
+.gradle/
+build/
+logs/
+!gradle/wrapper/gradle-wrapper.jar
