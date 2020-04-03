@@ -11,6 +11,7 @@ import org.pursuemoon.solvetsp.util.DataExtractor;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -87,7 +88,9 @@ public final class TspSolver implements Runnable {
 
     @Override
     public void run() {
-        // TODO : 计时器
+        long startTime = System.currentTimeMillis();
+        log.info(startTime);
+
         init();
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
                 .populationSize(100).withCrossoverProbability(0.96).withMutationProbability(0.60)
@@ -97,21 +100,26 @@ public final class TspSolver implements Runnable {
                 .withMutationOperator(new MultiPointMutationOperator(100, 80))
                 .withSelectionOperator(new RouletteSelectionOperator(100))
                 .withTopX(5)
-                .withTopY(10)
-                .withTopZ(15)
+                .withTopY(15)
+                .withTopZ(10)
                 .build();
         solutionGroup.initialize();
         try {
             log.info("The evolution is beginning.");
-            solutionGroup.evolve(Condition.ofMaxGenerationCondition(500));
+            solutionGroup.evolve(Condition.ofMaxGenerationCondition(1000));
             log.info("The evolution finished.");
         } catch (Exception e) {
             log.error("The evolution stopped because of exception: ", e);
             throw new RuntimeException(e);
         }
-        log.info(String.format("The optimal solution is: %s", optimalSolution));
         Solution solution = solutionGroup.getBest();
+        long endTime = System.currentTimeMillis();
+        double usedTime = (double) (endTime - startTime) / 1000 ;
+
+        log.info(String.format("The optimal solution is: %s", optimalSolution));
         log.info(String.format("The best solution is: %s", solution));
+        log.info(String.format("This algorithm takes time: %.3fs", usedTime));
+
         // TODO : 图形化遗传算法结果
     }
 

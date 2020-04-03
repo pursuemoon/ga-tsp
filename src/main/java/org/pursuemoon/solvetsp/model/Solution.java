@@ -22,7 +22,11 @@ public final class Solution implements Individual {
     private double distance;
 
     public Solution(int[] path, boolean beginWith1) {
-        gene = (beginWith1 ? cloneAndConvertToBeginWith1(path) : path.clone());
+        if (beginWith1) {
+            gene = (path[0] == 1 ? path : cloneAndConvertToBeginWith1(path));
+        } else {
+            gene = path;
+        }
     }
 
     public Solution(Integer[] path, boolean beginWith1) {
