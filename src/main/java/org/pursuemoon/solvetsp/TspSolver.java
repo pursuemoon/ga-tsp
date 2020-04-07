@@ -5,14 +5,15 @@ import org.pursuemoon.ai.ga.util.Condition;
 import org.pursuemoon.solvetsp.model.AbstractPoint;
 import org.pursuemoon.solvetsp.model.Solution;
 import org.pursuemoon.solvetsp.model.SolutionGroup;
+import org.pursuemoon.solvetsp.model.StopCondition;
 import org.pursuemoon.solvetsp.model.operator.*;
 import org.pursuemoon.solvetsp.util.DataExtractor;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.UnaryOperator;
 
 /**
  * Main class to solve the TSP.
@@ -30,7 +31,7 @@ public final class TspSolver implements Runnable {
     /** The id of the current solver thread. */
     public static ThreadLocal<Integer> idLocal = ThreadLocal.withInitial(() -> atomicInteger.getAndAdd(1));
 
-    /** The TSP being solved by the current solver thread. */
+    /** The information about the TSP being solved by the current solver thread. */
     public static ThreadLocal<List<Object>> tspLocal = ThreadLocal.withInitial(() -> dataExtractor.nextTsp());
 
     /** The path of the base directory of this TSP. */
@@ -73,8 +74,8 @@ public final class TspSolver implements Runnable {
             tspLocal.set(tsp);
             optimalSolution = opt;
         }
-        log.info(String.format("solver id: [%d]\ndirectory: [%s]\n" +
-                "optimal solution: [%s]", idLocal.get(), baseDir, optimalSolution.getDistance()));
+        log.info(String.format("The TSP in directory [%s] is being solved.\n" +
+                "Solver id is [%d].", baseDir, idLocal.get()));
     }
 
     /**
@@ -89,35 +90,39 @@ public final class TspSolver implements Runnable {
     @Override
     public void run() {
         long startTime = System.currentTimeMillis();
-        log.info(startTime);
 
         init();
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
                 .populationSize(100).withCrossoverProbability(0.96).withMutationProbability(0.60)
                 .withGenerationOperator(new RandomGeneratingOperator(100))
-                .withCrossoverOperator(new SinglePointCrossoverOperator(30, 30))
+                .withCrossoverOperator(new SinglePointCrossoverOperator(30, 20))
                 .withCrossoverOperator(new SectionCrossoverOperator(70))
-                .withMutationOperator(new MultiPointMutationOperator(100, 80))
+                .withMutationOperator(new MultiPointMutationOperator(100, 5))
                 .withSelectionOperator(new RouletteSelectionOperator(100))
                 .withTopX(5)
                 .withTopY(15)
                 .withTopZ(10)
+                .withBestQueueSize(500)
                 .build();
         solutionGroup.initialize();
         try {
             log.info("The evolution is beginning.");
-            solutionGroup.evolve(Condition.ofMaxGenerationCondition(1000));
+//            solutionGroup.evolve(Condition.ofMaxGenerationCondition(6300));
+//            solutionGroup.evolve(Condition.ofBestWorstDifferenceCondition(1e-5));
+            solutionGroup.evolve(new StopCondition(3000, 1e-8));
             log.info("The evolution finished.");
         } catch (Exception e) {
             log.error("The evolution stopped because of exception: ", e);
             throw new RuntimeException(e);
         }
         Solution solution = solutionGroup.getBest();
+        int genNum = solutionGroup.getGen();
         long endTime = System.currentTimeMillis();
         double usedTime = (double) (endTime - startTime) / 1000 ;
 
         log.info(String.format("The optimal solution is: %s", optimalSolution));
         log.info(String.format("The best solution is: %s", solution));
+        log.info(String.format("The number of generations this algorithm has gone through: %d", genNum));
         log.info(String.format("This algorithm takes time: %.3fs", usedTime));
 
         // TODO : 图形化遗传算法结果
@@ -132,6 +137,11 @@ public final class TspSolver implements Runnable {
         return (List<AbstractPoint>) TspSolver.tspLocal.get().get(1);
     }
 
+    @SuppressWarnings("unchecked")
+    public static UnaryOperator<Double> getFitnessFunction() {
+        return (UnaryOperator<Double>) TspSolver.tspLocal.get().get(3);
+    }
+
     public static void main(String[] args) {
         TspSolver tspSolver = new TspSolver();
         Thread thread = new Thread(tspSolver);
@@ -141,7 +151,7 @@ public final class TspSolver implements Runnable {
 //        String testDir = Objects.requireNonNull(TspSolver.class.getClassLoader()
 //                .getResource("tsp_test/test_GEO")).getPath();
 //        setDataExtractor(testDir);
-//        for (int i = 1; i <= 5; i++) {
+//        for (int i = 1; i <= 1; i++) {
 //            TspSolver tspSolver = new TspSolver();
 //            Thread thread = new Thread(tspSolver);
 //            thread.start();

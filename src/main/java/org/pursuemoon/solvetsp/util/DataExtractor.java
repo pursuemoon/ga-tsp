@@ -8,6 +8,7 @@ import org.pursuemoon.solvetsp.model.Solution;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.UnaryOperator;
 
 /**
  * Data reader, aiming to obtain formatted TSP points and optimal solutions.
@@ -18,6 +19,9 @@ public final class DataExtractor {
 
     private static final String defaultDir = Objects.requireNonNull(DataExtractor.class.getClassLoader()
             .getResource("tsp_test/test_EUC_2D")).getPath();
+
+
+    private static Random random = new Random();
 
     private List<File> testDirList;
     private int idx;
@@ -52,6 +56,9 @@ public final class DataExtractor {
      * The first element is its name.
      * The second element is its points.
      * The third element is its optimal solution if it exists, or {@code null} if not.
+     * The forth element is a fitness function which is adapted to this TSP.
+     *      Specifically, the fitness function is: fitness(distance) = 1 / (C * distance + 1e-5), and C depends on
+     *      the TSP being solved.
      *
      * @return the list that represents a TSP
      */
@@ -66,7 +73,49 @@ public final class DataExtractor {
         String fileName = file.getName();
         List<AbstractPoint> pList = extractPoints(String.format("%s/%s.tsp", filePath, fileName));
         Solution solution = extractSolution(String.format("%s/%s.opt.tour", filePath, fileName), true);
-        return Arrays.asList(filePath, pList, solution);
+        UnaryOperator<Double> fitnessFunction = calFitnessFunction(pList);
+        return Arrays.asList(filePath, pList, solution, fitnessFunction);
+    }
+
+    /**
+     * Gets a fitness function which is adapted to the specific TSP.
+     * The fitness function conforms the following form:
+     *      fitness(distance) = 1 / (C * distance + 1e-5).
+     *      And C here is the reciprocal of the magnitude of the random distance
+     *
+     * @param pList the list of points of the specified tsp
+     * @return the fitness function adapted to the tsp
+     */
+    private static UnaryOperator<Double> calFitnessFunction(List<AbstractPoint> pList) {
+        /* Gets a genotype randomly. */
+        int size = pList.size();
+        int[] gene = new int[size];
+        for (int i = 0; i < size; ++i)
+            gene[i] = i + 1;
+        for (int t = size - 1; t >= 0; --t) {
+            int pos = random.nextInt(size);
+            int temp = gene[pos];
+            gene[pos] = gene[t];
+            gene[t] = temp;
+        }
+        /* Calculates the constant C which is the reciprocal of the magnitude of the random distance. */
+        double distance = 0;
+        distance = pList.get(gene[size - 1] - 1).distanceTo(pList.get(gene[0] - 1));
+        for (int i = 1; i < size; ++i)
+            distance += pList.get(gene[i - 1] - 1).distanceTo(pList.get(gene[i] - 1));
+        int l = 1, r = 310, ans = r - 1;
+        while (l < r) {
+            int mid = (l + r) >>> 1;
+            double get = distance * Math.pow(10, -mid);
+            if (get < 1) {
+                ans = mid;
+                r = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+        final double C = Math.pow(10, -ans);
+        return t -> 1 / (C * t + 1e-5);
     }
 
     /**

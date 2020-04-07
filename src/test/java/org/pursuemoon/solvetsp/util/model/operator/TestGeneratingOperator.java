@@ -6,6 +6,10 @@ import org.pursuemoon.solvetsp.model.operator.ConvexHullGeneratingOperator;
 import org.pursuemoon.solvetsp.model.operator.GreedyGeneratingOperator;
 import org.pursuemoon.solvetsp.model.operator.RandomGeneratingOperator;
 
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.PriorityQueue;
+
 public class TestGeneratingOperator {
 
     @Test
@@ -16,15 +20,15 @@ public class TestGeneratingOperator {
 
     @Test
     public void testGreedyGeneratingOperator() {
-        GreedyGeneratingOperator operator = new GreedyGeneratingOperator(100);
+//        GreedyGeneratingOperator operator = new GreedyGeneratingOperator(100);
         // 还没测
-        Solution solution = operator.generate();
+//        Solution solution = operator.generate();
     }
 
     @Test
     public void testConvexHullGeneratingOperator() {
-        ConvexHullGeneratingOperator operator = new ConvexHullGeneratingOperator(100);
+//        ConvexHullGeneratingOperator operator = new ConvexHullGeneratingOperator(100);
         // 还没测
-        Solution solution = operator.generate();
+//        Solution solution = operator.generate();
     }
 }

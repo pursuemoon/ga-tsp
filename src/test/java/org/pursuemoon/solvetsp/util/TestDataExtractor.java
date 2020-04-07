@@ -2,11 +2,13 @@ package org.pursuemoon.solvetsp.util;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.pursuemoon.solvetsp.TspSolver;
 import org.pursuemoon.solvetsp.model.AbstractPoint;
 import org.pursuemoon.solvetsp.model.Solution;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class TestDataExtractor {
 
@@ -54,5 +56,12 @@ public class TestDataExtractor {
 
         Solution geoSolution = DataExtractor.extractSolution(geoOptimalSolutionDir, true);
         Assert.assertEquals(96, geoSolution.getClonedGene().length);
+    }
+
+    @Test
+    public void testFitnessFunction() {
+        UnaryOperator<Double> f = TspSolver.getFitnessFunction();
+        double a = f.apply(40000d), b = f.apply(39999d);
+        Assert.assertTrue(a < b);
     }
 }

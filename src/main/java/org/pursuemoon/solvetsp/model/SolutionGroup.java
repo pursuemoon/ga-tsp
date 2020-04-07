@@ -8,13 +8,19 @@ import java.util.*;
 
 public final class SolutionGroup implements Population<Solution> {
 
+    /* Parameters of traditional GA. */
+
     private int populationSize;
     private double crossoverProbability;
     private double mutationProbability;
 
-    private int topX;
-    private int topY;
-    private int topZ;
+    /* Parameters of improved GA. */
+
+    private int topX;   // The number of solutions before crossover, remained to compete others in the selection.
+    private int topY;   // The number of solutions before mutation, remained to compete others in the selection.
+    private int topZ;   // The number of solutions before selection, remained to compete others in the selection.
+
+    private int bestQueueSize;  // The number of best solutions maintained by priority queues.
 
     /**
      * The list containing {@code WeightedOperator.WeightedGeneratingOperator}s needed,
@@ -50,9 +56,19 @@ public final class SolutionGroup implements Population<Solution> {
     /** Pseudorandom number generator. */
     private Random random;
 
+    /** Priority queue of a certain number of best solutions. */
+    private PriorityQueue<Solution> bestQueueNatural;
+    private PriorityQueue<Solution> bestQueueReverse;
+
+    /** Current generation number. */
+    private int gen;
+
     private SolutionGroup() {
         solutions = new ArrayList<>();
         random = new Random();
+        bestQueueNatural = new PriorityQueue<>();
+        bestQueueReverse = new PriorityQueue<>(Comparator.reverseOrder());
+        gen = 0;
     }
 
     @Override
@@ -76,6 +92,9 @@ public final class SolutionGroup implements Population<Solution> {
             Solution solution = generatingOperators.get(index).generate();
             solutions.add(solution);
         }
+        Solution bestOne = getBest();
+        bestQueueNatural.offer(bestOne);
+        bestQueueReverse.offer(bestOne);
     }
 
     private int randIndexByGeneratingChances() {
@@ -83,17 +102,6 @@ public final class SolutionGroup implements Population<Solution> {
         for (int i = 0; i < generatingChances.length; ++i) {
             if (p >= generatingChances[i])
                 p -= generatingChances[i];
-            else
-                return i;
-        }
-        return 0;
-    }
-
-    private int randIndexBySelectionChances() {
-        double p = random.nextDouble();
-        for (int i = 0; i < selectionChances.length; ++i) {
-            if (p >= selectionChances[i])
-                p -= selectionChances[i];
             else
                 return i;
         }
@@ -129,20 +137,19 @@ public final class SolutionGroup implements Population<Solution> {
             throw new RuntimeException(m);
         }
 
-        int gen = 0;
         boolean stopFlag = false;
         do {
             gen++;
 
-            // TODO : 交叉之前可以保留 x 个优良个体
+            /* Remains the top x solutions before crossover. */
             List<Solution> topXList = getTopK(solutions, topX);
             List<Solution> afterCrossover = crossoverParents(solutions);
 
-            // TODO : 变异之前可以保留 y 个优良个体
+            /* Remains the top y solutions before mutation. */
             List<Solution> topYList = getTopK(afterCrossover, topY);
             List<Solution> afterMutation = mutateOffspring(afterCrossover);
 
-            // TODO : 选择之前可以保留 z 个优良个体
+            /* Remains the top z solutions before selection. */
             List<Solution> topZList = getTopK(afterMutation, topZ);
             List<Solution> afterSelection = selectParents(afterMutation);
 
@@ -152,8 +159,37 @@ public final class SolutionGroup implements Population<Solution> {
             afterSelection.sort(Comparator.reverseOrder());
             solutions = afterSelection.subList(0, populationSize);
 
+            /* Inserts the best one of this generation into the priority queues. */
+            Solution theBest = getBest();
+            if (bestQueueNatural.size() < bestQueueSize) {
+                bestQueueNatural.add(theBest);
+                bestQueueReverse.add(theBest);
+            } else {
+                Solution theWorst = bestQueueNatural.element();
+                if (theWorst.compareTo(theBest) < 0) {
+                    bestQueueNatural.remove();
+                    bestQueueReverse.remove(theWorst);
+                    bestQueueNatural.offer(theBest);
+                    bestQueueReverse.offer(theBest);
+                }
+            }
+
+            /* Decides if the evolution should be stopped. */
             if (stopCondition instanceof Condition.MaxGenerationCondition) {
-                if (gen >= ((Condition.MaxGenerationCondition) stopCondition).getMaxGeneration())
+                if (((Condition.MaxGenerationCondition) stopCondition).isMet(gen))
+                    stopFlag = true;
+            } else if (stopCondition instanceof Condition.BestWorstDifferenceCondition) {
+                Solution bestOne = bestQueueReverse.element();
+                Solution worstOne = bestQueueNatural.element();
+                double difference = bestOne.getFitness() - worstOne.getFitness();
+                if (bestQueueNatural.size() == bestQueueSize &&
+                        ((Condition.BestWorstDifferenceCondition) stopCondition).isMet(difference))
+                    stopFlag = true;
+            } else if (stopCondition instanceof StopCondition) {
+                Solution bestOne = bestQueueReverse.element();
+                Solution worstOne = bestQueueNatural.element();
+                double difference = bestOne.getFitness() - worstOne.getFitness();
+                if (((StopCondition) stopCondition).isMet(gen, difference))
                     stopFlag = true;
             }
         } while (!stopFlag);
@@ -235,6 +271,10 @@ public final class SolutionGroup implements Population<Solution> {
         return solutions.get(0);
     }
 
+    public int getGen() {
+        return gen;
+    }
+
     /**
      * Gets the corresponding chance array according to the weight list.
      *
@@ -271,6 +311,8 @@ public final class SolutionGroup implements Population<Solution> {
         private int topY;
         private int topZ;
 
+        private int bestQueueSize;
+
         private List<WeightedOperator.WeightedGeneratingOperator<Integer, Solution>> generatingOperators;
         private List<WeightedOperator.WeightedSelectionOperator<Integer, Solution>> selectionOperators;
         private List<WeightedOperator.WeightedCrossoverOperator<Integer, Solution>> crossoverOperators;
@@ -282,6 +324,7 @@ public final class SolutionGroup implements Population<Solution> {
             crossoverOperators = new ArrayList<>();
             mutationOperators = new ArrayList<>();
             topX = topY = topZ = 0;
+            bestQueueSize = 1;
         }
 
         public static Builder ofNew() {
@@ -338,6 +381,11 @@ public final class SolutionGroup implements Population<Solution> {
             return this;
         }
 
+        public Builder withBestQueueSize(int bestQueueSize) {
+            this.bestQueueSize = bestQueueSize;
+            return this;
+        }
+
         public SolutionGroup build() {
             SolutionGroup solutionGroup = new SolutionGroup();
             solutionGroup.populationSize = Objects.requireNonNull(populationSize);
@@ -350,6 +398,7 @@ public final class SolutionGroup implements Population<Solution> {
             solutionGroup.topX = topX;
             solutionGroup.topY = topY;
             solutionGroup.topZ = topZ;
+            solutionGroup.bestQueueSize = bestQueueSize;
             return solutionGroup;
         }
 

@@ -5,6 +5,10 @@ package org.pursuemoon.ai.ga.util;
  */
 public class Condition {
 
+    public boolean isMet() {
+        throw new UnsupportedOperationException("The condition check operation is not supported.");
+    }
+
     public static MaxGenerationCondition ofMaxGenerationCondition(int maxGeneration) {
         return new MaxGenerationCondition(maxGeneration);
     }
@@ -13,7 +17,7 @@ public class Condition {
         return new BestStayGenerationCondition(stayGeneration);
     }
 
-    public static BestWorstDifferenceCondition ofBestWorstDifferenceCondition(int difference) {
+    public static BestWorstDifferenceCondition ofBestWorstDifferenceCondition(double difference) {
         return new BestWorstDifferenceCondition(difference);
     }
 
@@ -32,6 +36,10 @@ public class Condition {
         public int getMaxGeneration() {
             return maxGeneration;
         }
+
+        public boolean isMet(int gen) {
+            return gen >= maxGeneration;
+        }
     }
 
     /**
@@ -49,6 +57,10 @@ public class Condition {
         public int getStayGeneration() {
             return stayGeneration;
         }
+
+        public boolean isMet(int gen) {
+            return gen >= stayGeneration;
+        }
     }
 
     /**
@@ -65,6 +77,10 @@ public class Condition {
 
         public double getDifference() {
             return difference;
+        }
+
+        public boolean isMet(double diff) {
+            return diff <= difference;
         }
     }
 }

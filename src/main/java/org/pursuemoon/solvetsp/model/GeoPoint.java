@@ -1,7 +1,5 @@
 package org.pursuemoon.solvetsp.model;
 
-import org.apache.log4j.Logger;
-
 import static java.lang.Math.*;
 
 /**
@@ -44,7 +42,7 @@ public class GeoPoint extends AbstractPoint implements Comparable<GeoPoint> {
             throw new RuntimeException("Different type points are being calculated their distance.");
         GeoPoint p = (GeoPoint) o;
 
-        /**
+        /*
          * Haversine Formula.
          * Easy to derive, but has accuracy problems.
          */
@@ -54,7 +52,7 @@ public class GeoPoint extends AbstractPoint implements Comparable<GeoPoint> {
 //                cos(latitude) * cos(p.latitude) * pow(sin(0.5 * deltaLongitude), 2);
 //        double distance = 2 * R_EARTH * asin(sqrt(inside));
 
-        /**
+        /*
          * A formula on the FAQ of TSPLIB.
          */
         double q1 = cos(longitude - p.longitude);

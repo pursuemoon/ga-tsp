@@ -9,9 +9,6 @@ import java.util.function.UnaryOperator;
 
 public final class Solution implements Individual {
 
-    /** The specific fitness function. */
-    private static UnaryOperator<Double> fitnessFunction = t -> 1 / (t + 1e-3);
-
     /** The genotype, represented by a Hamiltonian path, not a cycle, since we can get a cycle from a path. */
     private int[] gene;
 
@@ -123,6 +120,7 @@ public final class Solution implements Individual {
             throw new RuntimeException("Illegal genotype.");
 
         List<AbstractPoint> pList = TspSolver.getPoints();
+        UnaryOperator<Double> fitnessFunction = TspSolver.getFitnessFunction();
         int size = pList.size();
         distance = pList.get(gene[size - 1] - 1).distanceTo(pList.get(gene[0] - 1));
         for (int i = 1; i < size; ++i)
