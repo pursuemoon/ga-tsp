@@ -63,12 +63,14 @@ public final class SolutionGroup implements Population<Solution> {
     /** Current generation number. */
     private int gen;
 
+    /** The number of generation for which the best solution lasts. */
+    private int stayGeneration;
+
     private SolutionGroup() {
         solutions = new ArrayList<>();
         random = new Random();
         bestQueueNatural = new PriorityQueue<>();
         bestQueueReverse = new PriorityQueue<>(Comparator.reverseOrder());
-        gen = 0;
     }
 
     @Override
@@ -95,6 +97,8 @@ public final class SolutionGroup implements Population<Solution> {
         Solution bestOne = getBest();
         bestQueueNatural.offer(bestOne);
         bestQueueReverse.offer(bestOne);
+        gen = 0;
+        stayGeneration = 1;
     }
 
     private int randIndexByGeneratingChances() {
@@ -159,9 +163,20 @@ public final class SolutionGroup implements Population<Solution> {
             afterSelection.sort(Comparator.reverseOrder());
             solutions = afterSelection.subList(0, populationSize);
 
-            /* Inserts the best one of this generation into the priority queues. */
             Solution theBest = getBest();
+            Solution bestByNow  = bestQueueReverse.element();
+
+            /* Increases the age of the best solution. */
+            if (bestByNow.compareTo(theBest) >= 0) {
+                stayGeneration++;
+            }
+            else {
+                stayGeneration = 1;
+            }
+
+            /* Inserts the best one of this generation into the priority queues. */
             if (bestQueueNatural.size() < bestQueueSize) {
+
                 bestQueueNatural.add(theBest);
                 bestQueueReverse.add(theBest);
             } else {
@@ -176,21 +191,28 @@ public final class SolutionGroup implements Population<Solution> {
 
             /* Decides if the evolution should be stopped. */
             if (stopCondition instanceof Condition.MaxGenerationCondition) {
-                if (((Condition.MaxGenerationCondition) stopCondition).isMet(gen))
+                if (((Condition.MaxGenerationCondition) stopCondition).isMet(gen)) {
                     stopFlag = true;
+                }
             } else if (stopCondition instanceof Condition.BestWorstDifferenceCondition) {
                 Solution bestOne = bestQueueReverse.element();
                 Solution worstOne = bestQueueNatural.element();
                 double difference = bestOne.getFitness() - worstOne.getFitness();
                 if (bestQueueNatural.size() == bestQueueSize &&
-                        ((Condition.BestWorstDifferenceCondition) stopCondition).isMet(difference))
+                        ((Condition.BestWorstDifferenceCondition) stopCondition).isMet(difference)) {
                     stopFlag = true;
+                }
+            } else if (stopCondition instanceof Condition.BestStayGenerationCondition) {
+                if (((Condition.BestStayGenerationCondition) stopCondition).isMet(stayGeneration)) {
+                    stopFlag = true;
+                }
             } else if (stopCondition instanceof StopCondition) {
                 Solution bestOne = bestQueueReverse.element();
                 Solution worstOne = bestQueueNatural.element();
                 double difference = bestOne.getFitness() - worstOne.getFitness();
-                if (((StopCondition) stopCondition).isMet(gen, difference))
+                if (((StopCondition) stopCondition).isMet(gen, stayGeneration, difference)) {
                     stopFlag = true;
+                }
             }
         } while (!stopFlag);
     }

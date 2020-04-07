@@ -109,7 +109,8 @@ public final class TspSolver implements Runnable {
             log.info("The evolution is beginning.");
 //            solutionGroup.evolve(Condition.ofMaxGenerationCondition(6300));
 //            solutionGroup.evolve(Condition.ofBestWorstDifferenceCondition(1e-5));
-            solutionGroup.evolve(new StopCondition(3000, 1e-8));
+//            solutionGroup.evolve(Condition.ofBestStayGenerationCondition(5000));
+            solutionGroup.evolve(new StopCondition(2000, 800, 1e-8));
             log.info("The evolution finished.");
         } catch (Exception e) {
             log.error("The evolution stopped because of exception: ", e);
