@@ -1,7 +1,6 @@
 package org.pursuemoon.solvetsp;
 
 import org.apache.log4j.Logger;
-import org.pursuemoon.ai.ga.util.Condition;
 import org.pursuemoon.solvetsp.model.AbstractPoint;
 import org.pursuemoon.solvetsp.model.Solution;
 import org.pursuemoon.solvetsp.model.SolutionGroup;
@@ -110,7 +109,7 @@ public final class TspSolver implements Runnable {
 //            solutionGroup.evolve(Condition.ofMaxGenerationCondition(6300));
 //            solutionGroup.evolve(Condition.ofBestWorstDifferenceCondition(1e-5));
 //            solutionGroup.evolve(Condition.ofBestStayGenerationCondition(5000));
-            solutionGroup.evolve(new StopCondition(2000, 800, 1e-8));
+            solutionGroup.evolve(new StopCondition(1000, 500, 1e-7));
             log.info("The evolution finished.");
         } catch (Exception e) {
             log.error("The evolution stopped because of exception: ", e);
@@ -141,6 +140,10 @@ public final class TspSolver implements Runnable {
     @SuppressWarnings("unchecked")
     public static UnaryOperator<Double> getFitnessFunction() {
         return (UnaryOperator<Double>) TspSolver.tspLocal.get().get(3);
+    }
+
+    public static double[][] getDistArray() {
+        return (double[][]) TspSolver.tspLocal.get().get(4);
     }
 
     public static void main(String[] args) {

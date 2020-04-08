@@ -121,10 +121,17 @@ public final class Solution implements Individual {
 
         List<AbstractPoint> pList = TspSolver.getPoints();
         UnaryOperator<Double> fitnessFunction = TspSolver.getFitnessFunction();
+        double[][] distArray = TspSolver.getDistArray();
         int size = pList.size();
-        distance = pList.get(gene[size - 1] - 1).distanceTo(pList.get(gene[0] - 1));
-        for (int i = 1; i < size; ++i)
-            distance += pList.get(gene[i - 1] - 1).distanceTo(pList.get(gene[i] - 1));
+        int from = gene[size - 1] - 1, to = gene[0] - 1;
+        distance = distArray[from][to] >= 0 ? distArray[from][to] :
+                (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
+        for (int i = 1; i < size; ++i) {
+            from = gene[i - 1] - 1;
+            to = gene[i] - 1;
+            distance += distArray[from][to] >= 0 ? distArray[from][to] :
+                    (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
+        }
         return fitnessFunction.apply(distance);
     }
 

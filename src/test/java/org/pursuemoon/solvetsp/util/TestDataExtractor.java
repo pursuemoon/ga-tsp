@@ -7,6 +7,7 @@ import org.pursuemoon.solvetsp.model.AbstractPoint;
 import org.pursuemoon.solvetsp.model.Solution;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.UnaryOperator;
 

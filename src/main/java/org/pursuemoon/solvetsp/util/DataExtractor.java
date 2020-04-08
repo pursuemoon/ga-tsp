@@ -59,6 +59,8 @@ public final class DataExtractor {
      * The forth element is a fitness function which is adapted to this TSP.
      *      Specifically, the fitness function is: fitness(distance) = 1 / (C * distance + 1e-5), and C depends on
      *      the TSP being solved.
+     * The fifth element is a two-dimensional array representing distances between each two points.
+     *      This array is filled with -1, which means no distance has been calculated.
      *
      * @return the list that represents a TSP
      */
@@ -74,7 +76,12 @@ public final class DataExtractor {
         List<AbstractPoint> pList = extractPoints(String.format("%s/%s.tsp", filePath, fileName));
         Solution solution = extractSolution(String.format("%s/%s.opt.tour", filePath, fileName), true);
         UnaryOperator<Double> fitnessFunction = calFitnessFunction(pList);
-        return Arrays.asList(filePath, pList, solution, fitnessFunction);
+        @SuppressWarnings("all")
+        double[][] distArray = new double[pList.size()][pList.size()];
+        for (double[] doubles : distArray) {
+            Arrays.fill(doubles, -1);
+        }
+        return Arrays.asList(filePath, pList, solution, fitnessFunction, distArray);
     }
 
     /**
@@ -181,7 +188,7 @@ public final class DataExtractor {
                 if (str.trim().equals("TOUR_SECTION"))
                     reached = true;
             }
-            solution = new Solution(integers.toArray(new Integer[0]), true);
+            solution = new Solution(integers.toArray(new Integer[0]), beginWith1);
         } catch (FileNotFoundException fnfe) {
             String m = String.format("File [%s] was not found, so null will be returned.", fileDir);
             log.warn(m);
