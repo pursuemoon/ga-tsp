@@ -93,7 +93,9 @@ public final class TspSolver implements Runnable {
         init();
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
                 .populationSize(100).withCrossoverProbability(0.96).withMutationProbability(0.60)
-                .withGenerationOperator(new RandomGeneratingOperator(100))
+                .withGenerationOperator(new RandomGeneratingOperator(2))
+                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(49, 1))
+                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(49, 4))
                 .withCrossoverOperator(new SinglePointCrossoverOperator(30, 20))
                 .withCrossoverOperator(new SectionCrossoverOperator(70))
                 .withMutationOperator(new MultiPointMutationOperator(100, 5))
@@ -101,7 +103,7 @@ public final class TspSolver implements Runnable {
                 .withTopX(5)
                 .withTopY(15)
                 .withTopZ(10)
-                .withBestQueueSize(500)
+                .withBestQueueSize(100)
                 .build();
         solutionGroup.initialize();
         try {
@@ -109,7 +111,7 @@ public final class TspSolver implements Runnable {
 //            solutionGroup.evolve(Condition.ofMaxGenerationCondition(6300));
 //            solutionGroup.evolve(Condition.ofBestWorstDifferenceCondition(1e-5));
 //            solutionGroup.evolve(Condition.ofBestStayGenerationCondition(5000));
-            solutionGroup.evolve(new StopCondition(1000, 500, 1e-7));
+            solutionGroup.evolve(new StopCondition(500, 100, 1e-7));
             log.info("The evolution finished.");
         } catch (Exception e) {
             log.error("The evolution stopped because of exception: ", e);
@@ -122,13 +124,15 @@ public final class TspSolver implements Runnable {
 
         log.info(String.format("The optimal solution is: %s", optimalSolution));
         log.info(String.format("The best solution is: %s", solution));
+        log.info(String.format("The quality of solution is: %.2f%%",
+                (solution.getDistance() - optimalSolution.getDistance()) / optimalSolution.getDistance() * 100));
         log.info(String.format("The number of generations this algorithm has gone through: %d", genNum));
         log.info(String.format("This algorithm takes time: %.3fs", usedTime));
 
         // TODO : 图形化遗传算法结果
     }
 
-    private static void setDataExtractor(String str) {
+    public static void setDataExtractor(String str) {
         dataExtractor = new DataExtractor(str);
     }
 
