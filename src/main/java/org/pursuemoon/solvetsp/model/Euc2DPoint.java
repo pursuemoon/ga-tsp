@@ -50,10 +50,7 @@ public class Euc2DPoint extends AbstractPoint implements Comparable<Euc2DPoint> 
 
     @Override
     public int compareTo(Euc2DPoint o) {
-        int result = Integer.compare(order, o.order);
-        if (result == 0) {
-            result = Double.compare(x, o.x);
-        }
+        int result = Double.compare(x, o.x);
         if (result == 0) {
             result = Double.compare(y, o.y);
         }

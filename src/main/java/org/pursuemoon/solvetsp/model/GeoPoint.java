@@ -80,10 +80,7 @@ public class GeoPoint extends AbstractPoint implements Comparable<GeoPoint> {
 
     @Override
     public int compareTo(GeoPoint o) {
-        int result = Integer.compare(order, o.order);
-        if (result == 0) {
-            result = Double.compare(latitude, o.latitude);
-        }
+        int result = Double.compare(latitude, o.latitude);
         if (result == 0) {
             result = Double.compare(longitude, o.longitude);
         }
