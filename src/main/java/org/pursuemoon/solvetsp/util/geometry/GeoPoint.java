@@ -1,4 +1,4 @@
-package org.pursuemoon.solvetsp.model;
+package org.pursuemoon.solvetsp.util.geometry;
 
 import static java.lang.Math.*;
 
@@ -10,9 +10,8 @@ public class GeoPoint extends AbstractPoint implements Comparable<GeoPoint> {
     /** The radius of the earth, which uses kilometer as unit. */
     private static final double R_EARTH = 6378.388;
 
-    private int order;
-    private double latitude;
-    private double longitude;
+    protected double latitude;
+    protected double longitude;
 
     private GeoPoint() {
         throw new RuntimeException("GeoPoint object must be initialized with specified latitude and longitude.");

@@ -1,12 +1,9 @@
 package org.pursuemoon.solvetsp;
 
 import org.apache.log4j.Logger;
-import org.pursuemoon.solvetsp.model.AbstractPoint;
-import org.pursuemoon.solvetsp.model.Solution;
-import org.pursuemoon.solvetsp.model.SolutionGroup;
-import org.pursuemoon.solvetsp.model.StopCondition;
-import org.pursuemoon.solvetsp.model.operator.*;
+import org.pursuemoon.solvetsp.operator.*;
 import org.pursuemoon.solvetsp.util.DataExtractor;
+import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 
 import java.io.File;
 import java.util.Arrays;
@@ -93,9 +90,10 @@ public final class TspSolver implements Runnable {
         init();
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
                 .populationSize(100).withCrossoverProbability(0.96).withMutationProbability(0.60)
-                .withGenerationOperator(new RandomGeneratingOperator(2))
-                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(49, 1))
-                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(49, 4))
+                .withGenerationOperator(new RandomGeneratingOperator(1))
+                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(33, 1))
+                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(33, 2))
+                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(33, 2))
                 .withCrossoverOperator(new SinglePointCrossoverOperator(30, 20))
                 .withCrossoverOperator(new SectionCrossoverOperator(70))
                 .withMutationOperator(new MultiPointMutationOperator(100, 5))
@@ -103,15 +101,15 @@ public final class TspSolver implements Runnable {
                 .withTopX(5)
                 .withTopY(15)
                 .withTopZ(10)
-                .withBestQueueSize(100)
+                .withBestQueueSize(200)
                 .build();
         solutionGroup.initialize();
         try {
             log.info("The evolution is beginning.");
-//            solutionGroup.evolve(Condition.ofMaxGenerationCondition(6300));
+//            solutionGroup.evolve(Condition.ofMaxGenerationCondition(300));
 //            solutionGroup.evolve(Condition.ofBestWorstDifferenceCondition(1e-5));
 //            solutionGroup.evolve(Condition.ofBestStayGenerationCondition(5000));
-            solutionGroup.evolve(new StopCondition(500, 100, 1e-7));
+            solutionGroup.evolve(new StopCondition(200, 200, 1e-7));
             log.info("The evolution finished.");
         } catch (Exception e) {
             log.error("The evolution stopped because of exception: ", e);

@@ -1,4 +1,4 @@
-package org.pursuemoon.solvetsp.model;
+package org.pursuemoon.solvetsp;
 
 import org.pursuemoon.ai.ga.util.Condition;
 import org.pursuemoon.ai.ga.util.Population;

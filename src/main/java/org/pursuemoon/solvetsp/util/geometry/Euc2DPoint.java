@@ -1,4 +1,4 @@
-package org.pursuemoon.solvetsp.model;
+package org.pursuemoon.solvetsp.util.geometry;
 
 import static java.lang.Math.*;
 
@@ -7,9 +7,8 @@ import static java.lang.Math.*;
  */
 public class Euc2DPoint extends AbstractPoint implements Comparable<Euc2DPoint> {
 
-    private int order;
-    private double x;
-    private double y;
+    protected double x;
+    protected double y;
 
     private Euc2DPoint() {
         throw new RuntimeException("Euc2DPoint object must be initialized with specified coordinates.");
@@ -30,7 +29,7 @@ public class Euc2DPoint extends AbstractPoint implements Comparable<Euc2DPoint> 
         if (!(o instanceof Euc2DPoint))
             throw new RuntimeException("Different type points are being calculated their distance.");
         Euc2DPoint p = (Euc2DPoint) o;
-        return sqrt(pow(x - p.x, 2.0) + pow(y - p.y, 2));
+        return sqrt(pow(x - p.x, 2) + pow(y - p.y, 2));
     }
 
     @Override

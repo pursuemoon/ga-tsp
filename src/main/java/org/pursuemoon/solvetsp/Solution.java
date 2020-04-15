@@ -1,7 +1,7 @@
-package org.pursuemoon.solvetsp.model;
+package org.pursuemoon.solvetsp;
 
 import org.pursuemoon.ai.ga.util.Individual;
-import org.pursuemoon.solvetsp.TspSolver;
+import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +15,8 @@ public final class Solution implements Individual {
     /** The fitness of this solution, using lazy loading. */
     private double fitness = -1.0;
 
-    /** The distance of this solution. */
-    private double distance;
+    /** The distance of this solution, using lazy loading. */
+    private double distance = -1.0;
 
     public Solution(int[] path, boolean beginWith1) {
         if (beginWith1) {
@@ -105,8 +105,20 @@ public final class Solution implements Individual {
      * @return the distance of this TSP solution
      */
     public double getDistance() {
-        if (fitness < 0)
-            fitness = calFitness();
+        if (distance < 0) {
+            List<AbstractPoint> pList = TspSolver.getPoints();
+            double[][] distArray = TspSolver.getDistArray();
+            int size = pList.size();
+            int from = gene[size - 1] - 1, to = gene[0] - 1;
+            distance = distArray[from][to] >= 0 ? distArray[from][to] :
+                    (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
+            for (int i = 1; i < size; ++i) {
+                from = gene[i - 1] - 1;
+                to = gene[i] - 1;
+                distance += distArray[from][to] >= 0 ? distArray[from][to] :
+                        (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
+            }
+        }
         return distance;
     }
 
@@ -118,20 +130,8 @@ public final class Solution implements Individual {
     private double calFitness() {
         if (gene == null || gene.length == 0)
             throw new RuntimeException("Illegal genotype.");
-
-        List<AbstractPoint> pList = TspSolver.getPoints();
         UnaryOperator<Double> fitnessFunction = TspSolver.getFitnessFunction();
-        double[][] distArray = TspSolver.getDistArray();
-        int size = pList.size();
-        int from = gene[size - 1] - 1, to = gene[0] - 1;
-        distance = distArray[from][to] >= 0 ? distArray[from][to] :
-                (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
-        for (int i = 1; i < size; ++i) {
-            from = gene[i - 1] - 1;
-            to = gene[i] - 1;
-            distance += distArray[from][to] >= 0 ? distArray[from][to] :
-                    (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
-        }
+        distance = getDistance();
         return fitnessFunction.apply(distance);
     }
 

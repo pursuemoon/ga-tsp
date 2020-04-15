@@ -3,11 +3,10 @@ package org.pursuemoon.solvetsp.util;
 import org.junit.Assert;
 import org.junit.Test;
 import org.pursuemoon.solvetsp.TspSolver;
-import org.pursuemoon.solvetsp.model.AbstractPoint;
-import org.pursuemoon.solvetsp.model.Solution;
+import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
+import org.pursuemoon.solvetsp.Solution;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.UnaryOperator;
 

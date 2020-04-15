@@ -2,9 +2,9 @@ package org.pursuemoon.solvetsp.util.model.operator;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.pursuemoon.solvetsp.model.Solution;
-import org.pursuemoon.solvetsp.model.operator.MultiPointMutationOperator;
-import org.pursuemoon.solvetsp.model.operator.RandomGeneratingOperator;
+import org.pursuemoon.solvetsp.Solution;
+import org.pursuemoon.solvetsp.operator.MultiPointMutationOperator;
+import org.pursuemoon.solvetsp.operator.RandomGeneratingOperator;
 
 public class TestMutationOperator {
 

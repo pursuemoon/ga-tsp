@@ -1,9 +1,9 @@
-package org.pursuemoon.solvetsp.model.operator;
+package org.pursuemoon.solvetsp.operator;
 
 import org.pursuemoon.ai.ga.util.operator.WeightedOperator;
 import org.pursuemoon.solvetsp.TspSolver;
-import org.pursuemoon.solvetsp.model.AbstractPoint;
-import org.pursuemoon.solvetsp.model.Solution;
+import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
+import org.pursuemoon.solvetsp.Solution;
 
 import java.util.List;
 import java.util.Random;

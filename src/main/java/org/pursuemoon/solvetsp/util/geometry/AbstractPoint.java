@@ -1,9 +1,15 @@
-package org.pursuemoon.solvetsp.model;
+package org.pursuemoon.solvetsp.util.geometry;
 
 /**
  * Skeletal class representing point in TSP.
  */
 public abstract class AbstractPoint {
+
+    protected int order;
+
+    public int getOrder() {
+        return order;
+    }
 
     /**
      * Calculates the distance from this {@code AbstractPoint} to another one.

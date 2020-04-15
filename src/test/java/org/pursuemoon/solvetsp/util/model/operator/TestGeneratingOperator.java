@@ -2,10 +2,11 @@ package org.pursuemoon.solvetsp.util.model.operator;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.pursuemoon.solvetsp.model.Solution;
-import org.pursuemoon.solvetsp.model.operator.NearestKNeighborsGreedyGeneratingOperator;
-import org.pursuemoon.solvetsp.model.operator.RandomGeneratingOperator;
-import org.pursuemoon.solvetsp.model.operator.ShortestKEdgeGreedyGeneratingOperator;
+import org.pursuemoon.solvetsp.Solution;
+import org.pursuemoon.solvetsp.operator.ConvexHullConstrictionGeneratingOperator;
+import org.pursuemoon.solvetsp.operator.NearestKNeighborsGreedyGeneratingOperator;
+import org.pursuemoon.solvetsp.operator.RandomGeneratingOperator;
+import org.pursuemoon.solvetsp.operator.ShortestKEdgeGreedyGeneratingOperator;
 
 import java.util.BitSet;
 
@@ -33,10 +34,10 @@ public class TestGeneratingOperator {
     }
 
     @Test
-    public void testConvexHullGeneratingOperator() {
-//        ConvexHullGeneratingOperator operator = new ConvexHullGeneratingOperator(100);
-        // 还没测
-//        Solution solution = operator.generate();
+    public void testConvexHullConstrictionGeneratingOperator() {
+        ConvexHullConstrictionGeneratingOperator operator = new ConvexHullConstrictionGeneratingOperator(100, 1);
+        Solution solution = operator.generate();
+        Assert.assertTrue(checkIfSolutionLegal(solution));
     }
 
     private static boolean checkIfSolutionLegal(Solution solution) {

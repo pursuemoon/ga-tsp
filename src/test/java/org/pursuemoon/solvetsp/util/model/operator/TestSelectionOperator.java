@@ -2,9 +2,9 @@ package org.pursuemoon.solvetsp.util.model.operator;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.pursuemoon.solvetsp.model.Solution;
-import org.pursuemoon.solvetsp.model.operator.RandomGeneratingOperator;
-import org.pursuemoon.solvetsp.model.operator.RouletteSelectionOperator;
+import org.pursuemoon.solvetsp.Solution;
+import org.pursuemoon.solvetsp.operator.RandomGeneratingOperator;
+import org.pursuemoon.solvetsp.operator.RouletteSelectionOperator;
 
 import java.util.*;
 import java.util.stream.Collectors;

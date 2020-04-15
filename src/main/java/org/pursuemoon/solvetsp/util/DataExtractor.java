@@ -1,10 +1,10 @@
 package org.pursuemoon.solvetsp.util;
 
 import org.apache.log4j.Logger;
-import org.pursuemoon.solvetsp.model.Euc2DPoint;
-import org.pursuemoon.solvetsp.model.GeoPoint;
-import org.pursuemoon.solvetsp.model.AbstractPoint;
-import org.pursuemoon.solvetsp.model.Solution;
+import org.pursuemoon.solvetsp.util.geometry.Euc2DPoint;
+import org.pursuemoon.solvetsp.util.geometry.GeoPoint;
+import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
+import org.pursuemoon.solvetsp.Solution;
 
 import java.io.*;
 import java.util.*;

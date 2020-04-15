@@ -1,7 +1,7 @@
-package org.pursuemoon.solvetsp.model.operator;
+package org.pursuemoon.solvetsp.operator;
 
 import org.pursuemoon.ai.ga.util.operator.WeightedOperator;
-import org.pursuemoon.solvetsp.model.Solution;
+import org.pursuemoon.solvetsp.Solution;
 import org.pursuemoon.solvetsp.util.ArrayUtils;
 
 import java.util.ArrayList;
