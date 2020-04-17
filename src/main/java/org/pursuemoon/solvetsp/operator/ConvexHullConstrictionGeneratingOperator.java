@@ -34,38 +34,98 @@ public final class ConvexHullConstrictionGeneratingOperator
     @Override
     public Solution generate() {
         List<AbstractPoint> pList = TspSolver.getPoints();
-        int len = pList.size();
-        int[] gene = new int[len];
+        List<? extends AbstractPoint> ch;
         if (pList.get(0) instanceof Euc2DPoint) {
-            convexHullConstrictionMethod(gene, pList);
+            ch = constructConvexHull(pList);
         } else {
-            approximateConvexHullConstrictionMethod(gene, pList);
+            ch = constructApproximateConvexHull(pList);
         }
+        int[] gene = constrict(ch, pList);
         return new Solution(gene, true);
     }
 
-    private void convexHullConstrictionMethod(int[] gene, List<? extends AbstractPoint> pList) {
+    private List<? extends AbstractPoint> constructConvexHull(List<? extends AbstractPoint> pList) {
         @SuppressWarnings("unchecked")
-        List<Euc2DPoint> ch = ComputationalGeometryUtils.getConvexHull((List<Euc2DPoint>) pList);
-        List<Integer> remainingOrder = pList.stream().map(AbstractPoint::getOrder).collect(Collectors.toList());
-        List<Integer> chOrder = ch.stream().map(AbstractPoint::getOrder).collect(Collectors.toList());
-        remainingOrder.removeAll(chOrder);
-        int size = ch.size();
-        for (int i = 0; i < size; ++i) {
-            gene[i] = chOrder.get(i);
+        List<? extends AbstractPoint> ch = ComputationalGeometryUtils.getConvexHull((List<Euc2DPoint>) pList);
+        return ch;
+    }
+
+    private List<? extends AbstractPoint> constructApproximateConvexHull(List<? extends AbstractPoint> pList) {
+        int size = pList.size();
+        double maxDistance = -1;
+        int iOrder = 0, jOrder = 0;
+        for (int i = 0; i < size ; ++i) {
+            AbstractPoint pi = pList.get(i);
+            for (int j = 0; j < size; ++j) {
+                if (i == j) continue;
+                AbstractPoint pj = pList.get(j);
+                double d = pi.distanceTo(pj);
+                if (d > maxDistance) {
+                    iOrder = i;
+                    jOrder = j;
+                    maxDistance = d;
+                }
+            }
         }
+        List<AbstractPoint> ch = new ArrayList<>();
+        AbstractPoint pi = pList.get(iOrder);
+        AbstractPoint pj = pList.get(jOrder);
+        ch.add(pi);
+        ch.add(pj);
+        if (size <= 2) {
+            return ch;
+        } else {
+            int kOrder = 0;
+            double maxDistSum = -1;
+            for (int i = 0; i < size; ++i) {
+                if (i == iOrder || i == jOrder) continue;
+                AbstractPoint pk = pList.get(i);
+                double d = pi.distanceTo(pk) + pk.distanceTo(pj);
+                if (d > maxDistSum) {
+                    kOrder = i;
+                    maxDistSum = d;
+                }
+            }
+            ch.add(pList.get(kOrder));
+            return ch;
+        }
+    }
+
+    private int[] constrict(List<? extends AbstractPoint> convexHull, List<AbstractPoint> pList) {
+        /* Accelerates computing distances. */
+        TspSolver.fullyCalDistArray();
+        double[][] distArray = TspSolver.getDistArray();
+
+        int len = pList.size();
+        int[] gene = new int[len];
+        List<Integer> remainingOrder = pList.stream().map(AbstractPoint::getOrder).collect(Collectors.toList());
+        List<Integer> chOrder = convexHull.stream().map(AbstractPoint::getOrder).collect(Collectors.toList());
+        remainingOrder.removeAll(chOrder);
+        int size = convexHull.size();
+        LinkedList<Integer> geneList = new LinkedList<>();
+        for (int i = 0; i < size; ++i) {
+            geneList.add(chOrder.get(i));
+        }
+
         while (!remainingOrder.isEmpty()) {
             PriorityQueue<PointDistanceIncrement> queue = new PriorityQueue<>();
             for (int i : remainingOrder) {
-                AbstractPoint pi = pList.get(i - 1);
-                for (int idx = 0; idx < size; ++idx) {
-                    int j = gene[idx];
-                    int k = gene[(idx + 1) % size];
-                    AbstractPoint pj = pList.get(j - 1);
-                    AbstractPoint pk = pList.get(k - 1);
-                    double distIncrement = pj.distanceTo(pi) + pi.distanceTo(pk) - pj.distanceTo(pk);
-                    queue.offer(new PointDistanceIncrement(i, idx, (idx + 1) % size, distIncrement));
+                int idx = 0;
+                ListIterator<Integer> fromIter = geneList.listIterator(idx);
+                ListIterator<Integer> toIter = geneList.listIterator(idx + 1);
+                double bestDistIncrement = Double.MAX_VALUE;
+                int bestIdx = 0;
+                while (fromIter.hasNext()) {
+                    int j = fromIter.next();
+                    int k = toIter.hasNext() ? toIter.next() : geneList.getFirst();
+                    double distIncrement = distArray[j - 1][i - 1] + distArray[i - 1][k - 1] - distArray[j - 1][k - 1];
+                    if (Double.compare(distIncrement, bestDistIncrement) < 0) {
+                        bestIdx = idx;
+                        bestDistIncrement = distIncrement;
+                    }
+                    idx++;
                 }
+                queue.offer(new PointDistanceIncrement(i, bestIdx, (bestIdx + 1) % size, bestDistIncrement));
             }
             List<PointDistanceIncrement> list = new ArrayList<>();
             for (int i = 0; i < k && queue.peek() != null; ++i) {
@@ -74,18 +134,14 @@ public final class ConvexHullConstrictionGeneratingOperator
             PointDistanceIncrement pdi = list.get(random.nextInt(list.size()));
             remainingOrder.remove(pdi.pi);
             int pkIndex = pdi.pkIndex;
-            if (pkIndex == 0) {
-                gene[size++] = pdi.pi;
-            } else {
-                System.arraycopy(gene, pkIndex, gene, pkIndex + 1, size - pkIndex);
-                gene[pkIndex] = pdi.pi;
-                size++;
-            }
+            geneList.add(pkIndex, pdi.pi);
+            size++;
         }
-    }
-
-    private void approximateConvexHullConstrictionMethod(int[] gene, List<AbstractPoint> pList) {
-
+        int idx = 0;
+        for (Integer integer : geneList) {
+            gene[idx++] = integer;
+        }
+        return gene;
     }
 
     /**

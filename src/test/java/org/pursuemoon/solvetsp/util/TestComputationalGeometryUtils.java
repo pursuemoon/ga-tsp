@@ -14,15 +14,15 @@ public class TestComputationalGeometryUtils {
     public void testGetConvexHull() {
         List<Euc2DPoint> chList = new ArrayList<>();
         chList.add(new Euc2DPoint(1, 1));
-        chList.add(new Euc2DPoint(1, 0));
         chList.add(new Euc2DPoint(1, -1));
         chList.add(new Euc2DPoint(-1, 1));
-        chList.add(new Euc2DPoint(-1, 0));
         chList.add(new Euc2DPoint(-1, -1));
-        chList.add(new Euc2DPoint(0, 1));
-        chList.add(new Euc2DPoint(0, -1));
 
         List<Euc2DPoint> pList = new ArrayList<>(chList);
+        pList.add(new Euc2DPoint(1, 0));
+        pList.add(new Euc2DPoint(-1, 0));
+        pList.add(new Euc2DPoint(0, 1));
+        pList.add(new Euc2DPoint(0, -1));
         pList.add(new Euc2DPoint(0, 0));
         pList.add(new Euc2DPoint(0.5, 0.5));
         pList.add(new Euc2DPoint(-0.9, 0.8));

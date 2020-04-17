@@ -61,6 +61,8 @@ public final class DataExtractor {
      *      the TSP being solved.
      * The fifth element is a two-dimensional array representing distances between each two points.
      *      This array is filled with -1, which means no distance has been calculated.
+     * The sixth element is a Boolean object which representing if the distance array fully calculated.
+     *      Its default value is {@code false}. If it is fully calculated, it's {@code true}.
      *
      * @return the list that represents a TSP
      */
@@ -81,7 +83,7 @@ public final class DataExtractor {
         for (double[] doubles : distArray) {
             Arrays.fill(doubles, -1);
         }
-        return Arrays.asList(filePath, pList, solution, fitnessFunction, distArray);
+        return Arrays.asList(filePath, pList, solution, fitnessFunction, distArray, Boolean.FALSE);
     }
 
     /**

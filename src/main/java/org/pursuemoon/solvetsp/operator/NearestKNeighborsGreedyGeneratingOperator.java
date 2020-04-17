@@ -2,7 +2,6 @@ package org.pursuemoon.solvetsp.operator;
 
 import org.pursuemoon.ai.ga.util.operator.WeightedOperator;
 import org.pursuemoon.solvetsp.TspSolver;
-import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 import org.pursuemoon.solvetsp.Solution;
 
 import java.util.*;
@@ -29,8 +28,11 @@ public final class NearestKNeighborsGreedyGeneratingOperator
 
     @Override
     public Solution generate() {
-        List<AbstractPoint> pList = TspSolver.getPoints();
-        int size = pList.size();
+        /* Accelerates computing distances. */
+        TspSolver.fullyCalDistArray();
+        double[][] distArray = TspSolver.getDistArray();
+
+        int size = distArray.length;
         int[] gene = new int[size];
         BitSet bitSet = new BitSet(size);
         int t = 0;
@@ -40,13 +42,12 @@ public final class NearestKNeighborsGreedyGeneratingOperator
                 gene[t] = start;
                 bitSet.set(start);
             } else {
-                AbstractPoint from = pList.get(gene[t - 1] - 1);
+                int from = gene[t - 1] - 1;
                 PriorityQueue<Edge> queue = new PriorityQueue<>(Comparator.reverseOrder());
-                for (int i = 0; i < size; ++i) {
-                    if (!bitSet.get(i + 1)) {
-                        AbstractPoint p = pList.get(i);
-                        double dist = from.distanceTo(p);
-                        Edge edge = new Edge(i, dist);
+                for (int to = 0; to < size; ++to) {
+                    if (!bitSet.get(to + 1)) {
+                        double dist = distArray[from][to];
+                        Edge edge = new Edge(to, dist);
                         if (queue.size() < k) {
                             queue.offer(edge);
                         } else {

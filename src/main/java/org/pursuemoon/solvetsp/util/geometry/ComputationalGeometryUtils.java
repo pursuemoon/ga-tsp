@@ -15,7 +15,7 @@ public final class ComputationalGeometryUtils {
      *
      * @param pList scattered points
      * @param <T> type of points
-     * @return the convex hull, collinear points included
+     * @return the convex hull, collinear points excluded
      */
     public static <T extends Euc2DPoint> List<T> getConvexHull(List<T> pList) {
         /* Clones the original list. */
@@ -28,7 +28,7 @@ public final class ComputationalGeometryUtils {
             if (size > 1) {
                 Vector a = new Vector(ans.get(size - 2), ans.get(size - 1));
                 Vector b = new Vector(ans.get(size - 2), p);
-                while (size > 1 && a.det(b) < 0) {
+                while (size > 1 && a.det(b) <= 0) {
                     ans.remove(--size);
                     if (size > 1) {
                         a = new Vector(ans.get(size - 2), ans.get(size - 1));
@@ -45,7 +45,7 @@ public final class ComputationalGeometryUtils {
             if (size > k) {
                 Vector a = new Vector(ans.get(size - 2), ans.get(size - 1));
                 Vector b = new Vector(ans.get(size - 2), p);
-                while (size > k && a.det(b) < 0) {
+                while (size > k && a.det(b) <= 0) {
                     ans.remove(--size);
                     if (size > k) {
                         a = new Vector(ans.get(size - 2), ans.get(size - 1));

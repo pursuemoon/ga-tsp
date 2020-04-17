@@ -105,18 +105,19 @@ public final class Solution implements Individual {
      * @return the distance of this TSP solution
      */
     public double getDistance() {
+        // FIXME : 精度问题
         if (distance < 0) {
-            List<AbstractPoint> pList = TspSolver.getPoints();
+            /* Accelerates computing distances. */
+            TspSolver.fullyCalDistArray();
             double[][] distArray = TspSolver.getDistArray();
-            int size = pList.size();
+
+            int size = distArray.length;
             int from = gene[size - 1] - 1, to = gene[0] - 1;
-            distance = distArray[from][to] >= 0 ? distArray[from][to] :
-                    (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
+            distance = distArray[from][to];
             for (int i = 1; i < size; ++i) {
                 from = gene[i - 1] - 1;
                 to = gene[i] - 1;
-                distance += distArray[from][to] >= 0 ? distArray[from][to] :
-                        (distArray[from][to] = pList.get(from).distanceTo(pList.get(to)));
+                distance += distArray[from][to];
             }
         }
         return distance;

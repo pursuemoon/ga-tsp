@@ -2,7 +2,6 @@ package org.pursuemoon.solvetsp.operator;
 
 import org.pursuemoon.ai.ga.util.operator.WeightedOperator;
 import org.pursuemoon.solvetsp.TspSolver;
-import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 import org.pursuemoon.solvetsp.Solution;
 
 import java.util.*;
@@ -28,8 +27,11 @@ public final class ShortestKEdgeGreedyGeneratingOperator
 
     @Override
     public Solution generate() {
-        List<AbstractPoint> pList = TspSolver.getPoints();
-        int size = pList.size();
+        /* Accelerates computing distances. */
+        TspSolver.fullyCalDistArray();
+        double[][] distArray = TspSolver.getDistArray();
+
+        int size = distArray.length;
         int[] gene = new int[size];
         int[] next = new int[size];
         BitSet fromSet = new BitSet(size);
@@ -42,9 +44,7 @@ public final class ShortestKEdgeGreedyGeneratingOperator
                     if (i == j) continue;
                     if (fromSet.get(i) || toSet.get(j)) continue;
                     if (time != size - 1 && pathSet.isInSameSet(i, j)) continue;
-                    AbstractPoint from = pList.get(i);
-                    AbstractPoint to = pList.get(j);
-                    double d = from.distanceTo(to);
+                    double d = distArray[i][j];
                     Edge edge = new Edge(i, j, d);
                     if (queue.size() < k)
                         queue.offer(edge);

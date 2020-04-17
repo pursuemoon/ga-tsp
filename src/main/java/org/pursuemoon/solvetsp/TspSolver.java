@@ -6,6 +6,7 @@ import org.pursuemoon.solvetsp.util.DataExtractor;
 import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,8 +71,7 @@ public final class TspSolver implements Runnable {
             tspLocal.set(tsp);
             optimalSolution = opt;
         }
-        log.info(String.format("The TSP in directory [%s] is being solved.\n" +
-                "Solver id is [%d].", baseDir, idLocal.get()));
+        log.info(String.format("[%d] The TSP in directory [%s] is being solved.", idLocal.get(), baseDir));
     }
 
     /**
@@ -89,43 +89,42 @@ public final class TspSolver implements Runnable {
 
         init();
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
-                .populationSize(100).withCrossoverProbability(0.96).withMutationProbability(0.60)
+                .populationSize(50).withCrossoverProbability(0.96).withMutationProbability(0.60)
                 .withGenerationOperator(new RandomGeneratingOperator(1))
                 .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(33, 1))
-                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(33, 2))
-                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(33, 2))
+                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(33, 1))
+                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(33, 3))
                 .withCrossoverOperator(new SinglePointCrossoverOperator(30, 20))
                 .withCrossoverOperator(new SectionCrossoverOperator(70))
                 .withMutationOperator(new MultiPointMutationOperator(100, 5))
                 .withSelectionOperator(new RouletteSelectionOperator(100))
-                .withTopX(5)
-                .withTopY(15)
-                .withTopZ(10)
-                .withBestQueueSize(200)
+                .withTopX(2)
+                .withTopY(8)
+                .withTopZ(5)
+                .withBestQueueSize(100)
                 .build();
         solutionGroup.initialize();
+
+        long initEndTime = System.currentTimeMillis();
+        double initUsedTime = (double) (initEndTime - startTime) / 1000;
+        log.info(String.format("[%d] Population initialization finished. It took time %ss.", idLocal.get(), initUsedTime));
         try {
-            log.info("The evolution is beginning.");
-//            solutionGroup.evolve(Condition.ofMaxGenerationCondition(300));
-//            solutionGroup.evolve(Condition.ofBestWorstDifferenceCondition(1e-5));
-//            solutionGroup.evolve(Condition.ofBestStayGenerationCondition(5000));
-            solutionGroup.evolve(new StopCondition(200, 200, 1e-7));
-            log.info("The evolution finished.");
+            solutionGroup.evolve(new StopCondition(800, 100, 1e-7));
+
+            long evolutionEndTime = System.currentTimeMillis();
+            double EvolutionUsedTime = (double) (evolutionEndTime - initEndTime) / 1000;
+            log.info(String.format("[%d] Population evolution finished. It took time %ss.", idLocal.get(), EvolutionUsedTime));
         } catch (Exception e) {
-            log.error("The evolution stopped because of exception: ", e);
+            log.error(String.format("[%d] The evolution stopped because of exception: ", idLocal.get()), e);
             throw new RuntimeException(e);
         }
         Solution solution = solutionGroup.getBest();
         int genNum = solutionGroup.getGen();
-        long endTime = System.currentTimeMillis();
-        double usedTime = (double) (endTime - startTime) / 1000 ;
-
-        log.info(String.format("The optimal solution is: %s", optimalSolution));
-        log.info(String.format("The best solution is: %s", solution));
-        log.info(String.format("The quality of solution is: %.2f%%",
+        log.info(String.format("[%d] The optimal solution is: %s", idLocal.get(), optimalSolution));
+        log.info(String.format("[%d] The best solution is: %s", idLocal.get(), solution));
+        log.info(String.format("[%d] The quality of solution is: %.2f%%", idLocal.get(),
                 (solution.getDistance() - optimalSolution.getDistance()) / optimalSolution.getDistance() * 100));
-        log.info(String.format("The number of generations this algorithm has gone through: %d", genNum));
-        log.info(String.format("This algorithm takes time: %.3fs", usedTime));
+        log.info(String.format("[%d] The number of generations this algorithm has gone through: %d", idLocal.get(), genNum));
 
         // TODO : 图形化遗传算法结果
     }
@@ -134,18 +133,55 @@ public final class TspSolver implements Runnable {
         dataExtractor = new DataExtractor(str);
     }
 
+    /**
+     * Gets the list of points of the TSP being solved by current thread.
+     *
+     * @return the point list of the TSP being solved by current thread
+     */
     @SuppressWarnings("unchecked")
     public static List<AbstractPoint> getPoints() {
-        return (List<AbstractPoint>) TspSolver.tspLocal.get().get(1);
+        return (List<AbstractPoint>) tspLocal.get().get(1);
     }
 
+    /**
+     * Gets the fitness function adapted to the TSP being solved by current thread.
+     *
+     * @return the fitness function adapted to the TSP being solved by current thread
+     */
     @SuppressWarnings("unchecked")
     public static UnaryOperator<Double> getFitnessFunction() {
-        return (UnaryOperator<Double>) TspSolver.tspLocal.get().get(3);
+        return (UnaryOperator<Double>) tspLocal.get().get(3);
     }
 
+    /**
+     * Gets the 2-dimensional distance array of the TSP being solved by current thread.
+     *
+     * @return the 2-dimensional distance array of the TSP being solved by current thread
+     */
     public static double[][] getDistArray() {
-        return (double[][]) TspSolver.tspLocal.get().get(4);
+        return (double[][]) tspLocal.get().get(4);
+    }
+
+    /**
+     * Fully calculates the distance array of the TSP being solved by the current thread.
+     */
+    public static void fullyCalDistArray() {
+        Boolean full = (Boolean) tspLocal.get().get(5);
+        if (!full) {
+            List<AbstractPoint> pList = getPoints();
+            double[][] distArray = getDistArray();
+            int size = pList.size();
+            for (int i = 0; i < size; ++i) {
+                for (int j = 0; j < size; ++j) {
+                    if (i == j) continue;
+                    distArray[i][j] = pList.get(i).distanceTo(pList.get(j));
+                }
+            }
+            List<Object> list = new ArrayList<>(tspLocal.get());
+            list.remove(5);
+            list.add(5, Boolean.TRUE);
+            tspLocal.set(list);
+        }
     }
 
     public static void main(String[] args) {
