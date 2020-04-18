@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
 
@@ -94,8 +95,9 @@ public final class TspSolver implements Runnable {
                 .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(33, 1))
                 .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(33, 1))
                 .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(33, 3))
-                .withCrossoverOperator(new SinglePointCrossoverOperator(30, 20))
-                .withCrossoverOperator(new SectionCrossoverOperator(70))
+                .withCrossoverOperator(new SinglePointCrossoverOperator(10, 20))
+                .withCrossoverOperator(new SectionCrossoverOperator(10))
+                .withCrossoverOperator(new NearestNeighborCrossoverOperator(80))
                 .withMutationOperator(new MultiPointMutationOperator(20, 5))
                 .withMutationOperator(new RangeReversingMutationOperator(30, 30))
                 .withMutationOperator(new RangeReversingMutationOperator(50, 10))

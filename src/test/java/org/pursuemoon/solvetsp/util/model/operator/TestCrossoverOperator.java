@@ -3,9 +3,11 @@ package org.pursuemoon.solvetsp.util.model.operator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.pursuemoon.solvetsp.Solution;
+import org.pursuemoon.solvetsp.operator.NearestNeighborCrossoverOperator;
 import org.pursuemoon.solvetsp.operator.RandomGeneratingOperator;
 import org.pursuemoon.solvetsp.operator.SinglePointCrossoverOperator;
 
+import java.util.BitSet;
 import java.util.List;
 
 public class TestCrossoverOperator {
@@ -19,6 +21,9 @@ public class TestCrossoverOperator {
         Solution p1 = randomGeneratingOperator.generate();
         Solution p2 = randomGeneratingOperator.generate();
         List<Solution> offspring = operator.crossover(p1, p2);
+        for (Solution solution: offspring) {
+            Assert.assertTrue(checkIfSolutionLegal(solution));
+        }
         int[] geneP1 = p1.getClonedGene();
         int[] geneP2 = p2.getClonedGene();
         int[] gene1 = offspring.get(0).getClonedGene();
@@ -31,5 +36,29 @@ public class TestCrossoverOperator {
         Assert.assertEquals(cnt1, cnt2);
         Assert.assertTrue(cnt1 <= numberOfLoci);
         Assert.assertTrue(cnt2 <= numberOfLoci);
+    }
+
+    @Test
+    public void testNearestNeighborCrossoverOperator() {
+        NearestNeighborCrossoverOperator operator = new NearestNeighborCrossoverOperator(100);
+        Solution p1 = randomGeneratingOperator.generate();
+        Solution p2 = randomGeneratingOperator.generate();
+        List<Solution> offspring = operator.crossover(p1, p2);
+        for (Solution solution: offspring) {
+            Assert.assertTrue(checkIfSolutionLegal(solution));
+        }
+    }
+
+    private static boolean checkIfSolutionLegal(Solution solution) {
+        int[] gene = solution.getClonedGene();
+        BitSet bitSet = new BitSet(gene.length);
+        for (int i : gene) {
+            bitSet.flip(i - 1);
+        }
+        boolean flag = true;
+        for (int i = 0; i < gene.length && flag; ++i) {
+            flag = bitSet.get(i);
+        }
+        return flag;
     }
 }
