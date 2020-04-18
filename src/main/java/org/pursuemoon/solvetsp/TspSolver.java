@@ -96,12 +96,14 @@ public final class TspSolver implements Runnable {
                 .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(33, 3))
                 .withCrossoverOperator(new SinglePointCrossoverOperator(30, 20))
                 .withCrossoverOperator(new SectionCrossoverOperator(70))
-                .withMutationOperator(new MultiPointMutationOperator(100, 5))
+                .withMutationOperator(new MultiPointMutationOperator(20, 5))
+                .withMutationOperator(new RangeReversingMutationOperator(30, 30))
+                .withMutationOperator(new RangeReversingMutationOperator(50, 10))
                 .withSelectionOperator(new RouletteSelectionOperator(100))
                 .withTopX(2)
                 .withTopY(8)
                 .withTopZ(5)
-                .withBestQueueSize(100)
+                .withBestQueueSize(200)
                 .build();
         solutionGroup.initialize();
 
@@ -109,7 +111,7 @@ public final class TspSolver implements Runnable {
         double initUsedTime = (double) (initEndTime - startTime) / 1000;
         log.info(String.format("[%d] Population initialization finished. It took time %ss.", idLocal.get(), initUsedTime));
         try {
-            solutionGroup.evolve(new StopCondition(800, 100, 1e-7));
+            solutionGroup.evolve(new StopCondition(1000, 500, 1e-7));
 
             long evolutionEndTime = System.currentTimeMillis();
             double EvolutionUsedTime = (double) (evolutionEndTime - initEndTime) / 1000;

@@ -1,10 +1,8 @@
 package org.pursuemoon.solvetsp;
 
 import org.pursuemoon.ai.ga.util.Individual;
-import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.UnaryOperator;
 
 public final class Solution implements Individual {

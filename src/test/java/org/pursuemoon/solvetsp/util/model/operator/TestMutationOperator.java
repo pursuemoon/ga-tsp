@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.pursuemoon.solvetsp.Solution;
 import org.pursuemoon.solvetsp.operator.MultiPointMutationOperator;
 import org.pursuemoon.solvetsp.operator.RandomGeneratingOperator;
+import org.pursuemoon.solvetsp.operator.RangeReversingMutationOperator;
 
 public class TestMutationOperator {
 
@@ -13,6 +14,14 @@ public class TestMutationOperator {
     @Test
     public void testMultiPointMutationOperator() {
         MultiPointMutationOperator operator = new MultiPointMutationOperator(100, 10);
+        Solution oldSolution = randomGeneratingOperator.generate();
+        Solution newSolution = operator.mutate(oldSolution);
+        Assert.assertNotEquals(oldSolution, newSolution);
+    }
+
+    @Test
+    public void testRangeReversingMutationOperator() {
+        RangeReversingMutationOperator operator = new RangeReversingMutationOperator(100, 100);
         Solution oldSolution = randomGeneratingOperator.generate();
         Solution newSolution = operator.mutate(oldSolution);
         Assert.assertNotEquals(oldSolution, newSolution);
