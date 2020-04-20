@@ -22,7 +22,7 @@ public final class RandomGeneratingOperator extends WeightedOperator.WeightedGen
 
     @Override
     public Solution generate() {
-        List<AbstractPoint> pList = TspSolver.getPoints();
+        List<? extends AbstractPoint> pList = TspSolver.getPoints();
         int len = pList.size();
         int[] gene = new int[len];
         for (int i = 0; i < len; ++i)

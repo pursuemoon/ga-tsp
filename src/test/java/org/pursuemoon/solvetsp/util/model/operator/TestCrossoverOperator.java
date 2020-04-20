@@ -3,9 +3,11 @@ package org.pursuemoon.solvetsp.util.model.operator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.pursuemoon.solvetsp.Solution;
+import org.pursuemoon.solvetsp.TspSolver;
 import org.pursuemoon.solvetsp.operator.NearestNeighborCrossoverOperator;
 import org.pursuemoon.solvetsp.operator.RandomGeneratingOperator;
 import org.pursuemoon.solvetsp.operator.SinglePointCrossoverOperator;
+import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 
 import java.util.BitSet;
 import java.util.List;

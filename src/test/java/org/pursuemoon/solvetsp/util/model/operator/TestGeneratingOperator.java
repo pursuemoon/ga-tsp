@@ -5,13 +5,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pursuemoon.solvetsp.Solution;
 import org.pursuemoon.solvetsp.TspSolver;
-import org.pursuemoon.solvetsp.operator.ConvexHullConstrictionGeneratingOperator;
-import org.pursuemoon.solvetsp.operator.NearestKNeighborsGreedyGeneratingOperator;
-import org.pursuemoon.solvetsp.operator.RandomGeneratingOperator;
-import org.pursuemoon.solvetsp.operator.ShortestKEdgeGreedyGeneratingOperator;
+import org.pursuemoon.solvetsp.operator.*;
 
-import java.util.BitSet;
-import java.util.Objects;
+import java.util.*;
 
 public class TestGeneratingOperator {
 
@@ -48,6 +44,14 @@ public class TestGeneratingOperator {
         ConvexHullConstrictionGeneratingOperator operator = new ConvexHullConstrictionGeneratingOperator(100, 3);
         Solution solution = operator.generate();
         Assert.assertTrue(checkIfSolutionLegal(solution));
+    }
+
+    @Test
+    public void testConvexHullDivisionGeneratingOperator() {
+        ConvexHullDivisionGeneratingOperator operator = new ConvexHullDivisionGeneratingOperator(100);
+        Solution solution = operator.generate();
+        Assert.assertTrue(checkIfSolutionLegal(solution));
+        System.out.println(solution);
     }
 
     private static boolean checkIfSolutionLegal(Solution solution) {

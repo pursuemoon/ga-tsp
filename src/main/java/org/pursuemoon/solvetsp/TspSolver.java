@@ -91,16 +91,17 @@ public final class TspSolver implements Runnable {
         init();
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
                 .populationSize(50).withCrossoverProbability(0.96).withMutationProbability(0.60)
-                .withGenerationOperator(new RandomGeneratingOperator(1))
-                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(33, 1))
-                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(33, 1))
-                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(33, 3))
-                .withCrossoverOperator(new SinglePointCrossoverOperator(10, 20))
-                .withCrossoverOperator(new SectionCrossoverOperator(10))
-                .withCrossoverOperator(new NearestNeighborCrossoverOperator(80))
+                .withGenerationOperator(new RandomGeneratingOperator(4))
+                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(24, 1))
+                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(24, 2))
+                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(24, 3))
+                .withGenerationOperator(new ConvexHullDivisionGeneratingOperator(24))
+                .withCrossoverOperator(new SinglePointCrossoverOperator(2, 20))
+                .withCrossoverOperator(new SectionCrossoverOperator(3))
+                .withCrossoverOperator(new NearestNeighborCrossoverOperator(95))
                 .withMutationOperator(new MultiPointMutationOperator(20, 5))
-                .withMutationOperator(new RangeReversingMutationOperator(30, 30))
-                .withMutationOperator(new RangeReversingMutationOperator(50, 10))
+                .withMutationOperator(new RangeReversingMutationOperator(30, 65))
+                .withMutationOperator(new RangeReversingMutationOperator(50, 15))
                 .withSelectionOperator(new RouletteSelectionOperator(100))
                 .withTopX(2)
                 .withTopY(8)
@@ -113,7 +114,7 @@ public final class TspSolver implements Runnable {
         double initUsedTime = (double) (initEndTime - startTime) / 1000;
         log.info(String.format("[%d] Population initialization finished. It took time %ss.", idLocal.get(), initUsedTime));
         try {
-            solutionGroup.evolve(new StopCondition(1000, 500, 1e-7));
+            solutionGroup.evolve(new StopCondition(500, 500, 1e-7));
 
             long evolutionEndTime = System.currentTimeMillis();
             double EvolutionUsedTime = (double) (evolutionEndTime - initEndTime) / 1000;
@@ -143,8 +144,8 @@ public final class TspSolver implements Runnable {
      * @return the point list of the TSP being solved by current thread
      */
     @SuppressWarnings("unchecked")
-    public static List<AbstractPoint> getPoints() {
-        return (List<AbstractPoint>) tspLocal.get().get(1);
+    public static List<? extends AbstractPoint> getPoints() {
+        return (List<? extends AbstractPoint>) tspLocal.get().get(1);
     }
 
     /**
@@ -172,7 +173,7 @@ public final class TspSolver implements Runnable {
     public static void fullyCalDistArray() {
         Boolean full = (Boolean) tspLocal.get().get(5);
         if (!full) {
-            List<AbstractPoint> pList = getPoints();
+            List<? extends AbstractPoint> pList = getPoints();
             double[][] distArray = getDistArray();
             int size = pList.size();
             for (int i = 0; i < size; ++i) {

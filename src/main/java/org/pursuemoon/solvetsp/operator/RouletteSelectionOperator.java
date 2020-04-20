@@ -36,7 +36,7 @@ public final class RouletteSelectionOperator extends WeightedOperator.WeightedSe
                     break;
                 }
             }
-            // Guarantees that there is always a solution to be select.
+            // Guarantees that there is always a solution to be selected.
             if (!flag) {
                 int index = random.nextInt(chances.length);
                 sList.add(originalList.get(index));

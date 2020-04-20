@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Section-Strategy implementation of {@code CrossoverOperator}.
+ */
 public final class SectionCrossoverOperator extends WeightedOperator.WeightedCrossoverOperator<Integer, Solution> {
 
     private Random random;

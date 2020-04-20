@@ -32,11 +32,12 @@ public final class ConvexHullConstrictionGeneratingOperator
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Solution generate() {
-        List<AbstractPoint> pList = TspSolver.getPoints();
+        List<? extends AbstractPoint> pList = TspSolver.getPoints();
         List<? extends AbstractPoint> ch;
         if (pList.get(0) instanceof Euc2DPoint) {
-            ch = constructConvexHull(pList);
+            ch = constructConvexHull((List<? extends Euc2DPoint>) pList);
         } else {
             ch = constructApproximateConvexHull(pList);
         }
@@ -44,54 +45,15 @@ public final class ConvexHullConstrictionGeneratingOperator
         return new Solution(gene, true);
     }
 
-    private List<? extends AbstractPoint> constructConvexHull(List<? extends AbstractPoint> pList) {
-        @SuppressWarnings("unchecked")
-        List<? extends AbstractPoint> ch = ComputationalGeometryUtils.getConvexHull((List<Euc2DPoint>) pList);
-        return ch;
+    private List<? extends AbstractPoint> constructConvexHull(List<? extends Euc2DPoint> pList) {
+        return ComputationalGeometryUtils.getConvexHull(pList);
     }
 
     private List<? extends AbstractPoint> constructApproximateConvexHull(List<? extends AbstractPoint> pList) {
-        int size = pList.size();
-        double maxDistance = -1;
-        int iOrder = 0, jOrder = 0;
-        for (int i = 0; i < size ; ++i) {
-            AbstractPoint pi = pList.get(i);
-            for (int j = 0; j < size; ++j) {
-                if (i == j) continue;
-                AbstractPoint pj = pList.get(j);
-                double d = pi.distanceTo(pj);
-                if (d > maxDistance) {
-                    iOrder = i;
-                    jOrder = j;
-                    maxDistance = d;
-                }
-            }
-        }
-        List<AbstractPoint> ch = new ArrayList<>();
-        AbstractPoint pi = pList.get(iOrder);
-        AbstractPoint pj = pList.get(jOrder);
-        ch.add(pi);
-        ch.add(pj);
-        if (size <= 2) {
-            return ch;
-        } else {
-            int kOrder = 0;
-            double maxDistSum = -1;
-            for (int i = 0; i < size; ++i) {
-                if (i == iOrder || i == jOrder) continue;
-                AbstractPoint pk = pList.get(i);
-                double d = pi.distanceTo(pk) + pk.distanceTo(pj);
-                if (d > maxDistSum) {
-                    kOrder = i;
-                    maxDistSum = d;
-                }
-            }
-            ch.add(pList.get(kOrder));
-            return ch;
-        }
+        return ComputationalGeometryUtils.getApproximateConvexHull(pList);
     }
 
-    private int[] constrict(List<? extends AbstractPoint> convexHull, List<AbstractPoint> pList) {
+    private int[] constrict(List<? extends AbstractPoint> convexHull, List<? extends AbstractPoint> pList) {
         /* Accelerates computing distances. */
         TspSolver.fullyCalDistArray();
         double[][] distArray = TspSolver.getDistArray();
