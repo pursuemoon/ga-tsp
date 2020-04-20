@@ -51,7 +51,6 @@ public class TestGeneratingOperator {
         ConvexHullDivisionGeneratingOperator operator = new ConvexHullDivisionGeneratingOperator(100);
         Solution solution = operator.generate();
         Assert.assertTrue(checkIfSolutionLegal(solution));
-        System.out.println(solution);
     }
 
     private static boolean checkIfSolutionLegal(Solution solution) {

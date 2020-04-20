@@ -54,7 +54,15 @@ public class ConvexHullDivisionGeneratingOperator
     private List<? extends AbstractPoint> constructByConvexHull(List<? extends Euc2DPoint> originalPoints, AbstractPoint beginPoint, boolean flag) {
         List<? extends Euc2DPoint> ch = ComputationalGeometryUtils.getConvexHull(originalPoints);
         List<? extends Euc2DPoint> remaining = new ArrayList<>(originalPoints);
-        remaining.removeAll(ch);
+        for (Euc2DPoint p : ch) {
+            int size = remaining.size();
+            for (int i = 0; i < size; ++i) {
+                if (p == remaining.get(i)) {
+                    remaining.remove(i);
+                    break;
+                }
+            }
+        }
 
         /* There may be more insert operations when constructing outer layer. */
         List<AbstractPoint> outerLayer = new LinkedList(ch);
@@ -69,7 +77,15 @@ public class ConvexHullDivisionGeneratingOperator
             for (int lay = 1; lay < numOfLayers && !remaining.isEmpty(); ++lay) {
                 List<? extends Euc2DPoint> convexHull = ComputationalGeometryUtils.getConvexHull(remaining);
                 toInsert.addAll(convexHull);
-                remaining.removeAll(convexHull);
+                for (Euc2DPoint p : convexHull) {
+                    int size = remaining.size();
+                    for (int i = 0; i < size; ++i) {
+                        if (p == remaining.get(i)) {
+                            remaining.remove(i);
+                            break;
+                        }
+                    }
+                }
             }
             insertPointsToOuterLayer(toInsert, outerLayer);
 
@@ -136,7 +152,15 @@ public class ConvexHullDivisionGeneratingOperator
     private List<? extends AbstractPoint> constructByApproximateConvexHull(List<? extends AbstractPoint> originalPoints, AbstractPoint beginPoint, boolean flag) {
         List<? extends AbstractPoint> ch = ComputationalGeometryUtils.getApproximateConvexHull(originalPoints);
         List<? extends AbstractPoint> remaining = new ArrayList<>(originalPoints);
-        remaining.removeAll(ch);
+        for (AbstractPoint p : ch) {
+            int size = remaining.size();
+            for (int i = 0; i < size; ++i) {
+                if (p == remaining.get(i)) {
+                    remaining.remove(i);
+                    break;
+                }
+            }
+        }
 
         /* There may be more insert operations when constructing outer layer. */
         List<AbstractPoint> outerLayer = new LinkedList(ch);
@@ -151,7 +175,15 @@ public class ConvexHullDivisionGeneratingOperator
             for (int lay = 1; lay < numOfLayers && !remaining.isEmpty(); ++lay) {
                 List<? extends AbstractPoint> convexHull = ComputationalGeometryUtils.getApproximateConvexHull(remaining);
                 toInsert.addAll(convexHull);
-                remaining.removeAll(convexHull);
+                for (AbstractPoint p : convexHull) {
+                    int size = remaining.size();
+                    for (int i = 0; i < size; ++i) {
+                        if (p == remaining.get(i)) {
+                            remaining.remove(i);
+                            break;
+                        }
+                    }
+                }
             }
             insertPointsToOuterLayer(toInsert, outerLayer);
 

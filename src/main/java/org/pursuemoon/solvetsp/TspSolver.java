@@ -92,10 +92,10 @@ public final class TspSolver implements Runnable {
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
                 .populationSize(50).withCrossoverProbability(0.96).withMutationProbability(0.60)
                 .withGenerationOperator(new RandomGeneratingOperator(4))
-                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(24, 1))
-                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(24, 2))
-                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(24, 3))
-                .withGenerationOperator(new ConvexHullDivisionGeneratingOperator(24))
+                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(36, 1))
+                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(12, 2))
+                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(36, 3))
+                .withGenerationOperator(new ConvexHullDivisionGeneratingOperator(12))
                 .withCrossoverOperator(new SinglePointCrossoverOperator(2, 20))
                 .withCrossoverOperator(new SectionCrossoverOperator(3))
                 .withCrossoverOperator(new NearestNeighborCrossoverOperator(95))
@@ -114,7 +114,7 @@ public final class TspSolver implements Runnable {
         double initUsedTime = (double) (initEndTime - startTime) / 1000;
         log.info(String.format("[%d] Population initialization finished. It took time %ss.", idLocal.get(), initUsedTime));
         try {
-            solutionGroup.evolve(new StopCondition(500, 500, 1e-7));
+            solutionGroup.evolve(new StopCondition(1000, 500, 1e-7));
 
             long evolutionEndTime = System.currentTimeMillis();
             double EvolutionUsedTime = (double) (evolutionEndTime - initEndTime) / 1000;
@@ -190,9 +190,11 @@ public final class TspSolver implements Runnable {
     }
 
     public static void main(String[] args) {
-        TspSolver tspSolver = new TspSolver();
-        Thread thread = new Thread(tspSolver);
-        thread.start();
+        for (int i = 1; i <= 1; ++i) {
+            TspSolver tspSolver = new TspSolver();
+            Thread thread = new Thread(tspSolver);
+            thread.start();
+        }
 
         // 经纬度的测试
 //        String testDir = Objects.requireNonNull(TspSolver.class.getClassLoader()
