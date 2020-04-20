@@ -29,7 +29,7 @@ public class Euc2DPoint extends AbstractPoint implements Comparable<Euc2DPoint> 
         if (!(o instanceof Euc2DPoint))
             throw new RuntimeException("Different type points are being calculated their distance.");
         Euc2DPoint p = (Euc2DPoint) o;
-        return sqrt(pow(x - p.x, 2) + pow(y - p.y, 2));
+        return (int) (sqrt(pow(x - p.x, 2) + pow(y - p.y, 2)) + 0.5);
     }
 
     @Override

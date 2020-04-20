@@ -90,7 +90,7 @@ public final class TspSolver implements Runnable {
 
         init();
         SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
-                .populationSize(50).withCrossoverProbability(0.96).withMutationProbability(0.60)
+                .populationSize(30).withCrossoverProbability(0.96).withMutationProbability(0.60)
                 .withGenerationOperator(new RandomGeneratingOperator(4))
                 .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(36, 1))
                 .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(12, 2))
@@ -104,8 +104,8 @@ public final class TspSolver implements Runnable {
                 .withMutationOperator(new RangeReversingMutationOperator(50, 15))
                 .withSelectionOperator(new RouletteSelectionOperator(100))
                 .withTopX(2)
-                .withTopY(8)
-                .withTopZ(5)
+                .withTopY(4)
+                .withTopZ(3)
                 .withBestQueueSize(200)
                 .build();
         solutionGroup.initialize();
@@ -114,7 +114,7 @@ public final class TspSolver implements Runnable {
         double initUsedTime = (double) (initEndTime - startTime) / 1000;
         log.info(String.format("[%d] Population initialization finished. It took time %ss.", idLocal.get(), initUsedTime));
         try {
-            solutionGroup.evolve(new StopCondition(1000, 500, 1e-7));
+            solutionGroup.evolve(new StopCondition(500, 500, 1e-7));
 
             long evolutionEndTime = System.currentTimeMillis();
             double EvolutionUsedTime = (double) (evolutionEndTime - initEndTime) / 1000;
@@ -200,7 +200,7 @@ public final class TspSolver implements Runnable {
 //        String testDir = Objects.requireNonNull(TspSolver.class.getClassLoader()
 //                .getResource("tsp_test/test_GEO")).getPath();
 //        setDataExtractor(testDir);
-//        for (int i = 1; i <= 1; i++) {
+//        for (int i = 1; i <= 5; i++) {
 //            TspSolver tspSolver = new TspSolver();
 //            Thread thread = new Thread(tspSolver);
 //            thread.start();

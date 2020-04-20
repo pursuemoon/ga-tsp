@@ -103,7 +103,6 @@ public final class Solution implements Individual {
      * @return the distance of this TSP solution
      */
     public double getDistance() {
-        // FIXME : 精度问题
         if (distance < 0) {
             /* Accelerates computing distances. */
             TspSolver.fullyCalDistArray();

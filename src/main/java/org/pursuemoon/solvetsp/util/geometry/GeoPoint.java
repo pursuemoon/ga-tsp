@@ -7,7 +7,10 @@ import static java.lang.Math.*;
  */
 public class GeoPoint extends AbstractPoint implements Comparable<GeoPoint> {
 
-    /** The radius of the earth, which uses kilometer as unit. */
+    /** The value of PI TSPLIB uses. */
+    private static final double PI = 3.141592;
+
+    /** The radius of the earth TSPLIB uses, which uses kilometer as unit. */
     private static final double R_EARTH = 6378.388;
 
     protected double latitude;
@@ -52,12 +55,12 @@ public class GeoPoint extends AbstractPoint implements Comparable<GeoPoint> {
 //        double distance = 2 * R_EARTH * asin(sqrt(inside));
 
         /*
-         * A formula on the FAQ of TSPLIB.
+         * A formula that TSPLIB uses.
          */
         double q1 = cos(longitude - p.longitude);
         double q2 = cos(latitude - p.latitude);
         double q3 = cos(latitude + p.latitude);
-        double distance = R_EARTH * acos(0.5 * ((1 + q1) * q2 - (1 - q1) * q3));
+        double distance = (int) (R_EARTH * acos(0.5 * ((1 + q1) * q2 - (1 - q1) * q3)) + 1);
 
         return distance;
     }
@@ -96,9 +99,9 @@ public class GeoPoint extends AbstractPoint implements Comparable<GeoPoint> {
      * @return a value in radians
      */
     private static double degrees2Radians(double degrees) {
-        int integerPart = (int) degrees;
+        int integerPart = (int) (degrees);
         double fractionalPart = degrees - integerPart;
-        return PI * (integerPart + 5 * fractionalPart / 3) / 180;
+        return GeoPoint.PI * (integerPart + 5 * fractionalPart / 3) / 180;
     }
 
     @Override
