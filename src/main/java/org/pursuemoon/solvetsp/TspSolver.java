@@ -6,10 +6,7 @@ import org.pursuemoon.solvetsp.util.DataExtractor;
 import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
 
@@ -27,31 +24,111 @@ public final class TspSolver implements Runnable {
     private static DataExtractor dataExtractor = new DataExtractor();
 
     /** The id of the current solver thread. */
-    public static ThreadLocal<Integer> idLocal = ThreadLocal.withInitial(() -> atomicInteger.getAndAdd(1));
+    private static ThreadLocal<Integer> idLocal = ThreadLocal.withInitial(() -> atomicInteger.getAndAdd(1));
 
     /** The information about the TSP being solved by the current solver thread. */
-    public static ThreadLocal<List<Object>> tspLocal = ThreadLocal.withInitial(() -> dataExtractor.nextTsp());
+    private static ThreadLocal<List<Object>> tspLocal = ThreadLocal.withInitial(() -> dataExtractor.nextTsp());
 
     /** The path of the base directory of this TSP. */
     private String baseDir;
 
-    /** The optimal solution of this TSP. */
+    /** Number of calculations for the same TSP. */
+    private int calTime;
+
+    /* Parameters of traditional GA. */
+
+    private int populationSize;
+    private double crossoverProbability;
+    private double mutationProbability;
+
+    /* Parameters of improved GA. */
+
+    private int topX;
+    private int topY;
+    private int topZ;
+
+    /* Parameters of stop condition. */
+
+    private int leastGenerationNumber;
+    private int bestQueueSize;
+    private int leastBestStayGeneration;
+    private double maxFitnessDifferenceBetweenBestAndWorst;
+
+    /** The list of {@code SolutionReport} that contains approximate optimal solution obtained at each attempt. */
+    private List<SolutionReport> solutionReportList;
+
+    /** Average distance of all results. */
+    private double averageDistance;
+
+    /** Average generation number of all results. */
+    private double averageGenerationNumber;
+
+    /** Average initialization cost time in seconds. */
+    private double averageInitUsedTime;
+
+    /** Average evolution cost time in seconds. */
+    private double averageEvolutionUsedTime;
+
+    /** The optimal solution of this TSP, given by TSPLIB. */
     private Solution optimalSolution;
 
     /**
      * Default constructor.
      */
     public TspSolver() {
-        baseDir = "";
+        this("", 8);
     }
 
     /**
-     * Constructor with {@code baseDir}.
+     * Default constructor with {@code baseDir}.
      *
      * @param baseDir the base direction of a specific TSP
      */
-    public TspSolver(String baseDir) {
+    public TspSolver(String baseDir, int calTime) {
+        this(baseDir, calTime,
+                35, 0.96, 0.66,
+                2, 5, 3,
+                2000, 500, 1000, 1e-6);
+    }
+
+    /**
+     * Constructor with {@code baseDir} and other specific parameters.
+     *
+     * @param baseDir the base direction of a specific TSP
+     *
+     * @param populationSize the population size of ga
+     * @param crossoverProbability the probability of crossover of ga
+     * @param mutationProbability the probability of mutation of ga
+     *
+     * @param topX the number of solutions before crossover
+     * @param topY the number of solutions before mutation
+     * @param topZ the number of solutions before selection
+     * @param leastGenerationNumber the least number of evolution generation
+     *
+     * @param bestQueueSize one of stop condition,
+     *                      the size of the queue of best individuals
+     * @param leastBestStayGeneration one of stop condition,
+     *                                the least number of stay generation of the best individual
+     * @param maxFitnessDifferenceBetweenBestAndWorst one of stop condition,
+     *                                                the max difference of fitness of the best and worst individual in the best queue
+     */
+    public TspSolver(String baseDir, int calTime,
+                     int populationSize, double crossoverProbability, double mutationProbability,
+                     int topX, int topY, int topZ,
+                     int leastGenerationNumber, int bestQueueSize, int leastBestStayGeneration, double maxFitnessDifferenceBetweenBestAndWorst) {
         this.baseDir = baseDir;
+        this.calTime = calTime;
+        this.populationSize = populationSize;
+        this.crossoverProbability = crossoverProbability;
+        this.mutationProbability = mutationProbability;
+        this.topX = topX;
+        this.topY = topY;
+        this.topZ = topZ;
+        this.leastGenerationNumber = leastGenerationNumber;
+        this.bestQueueSize = bestQueueSize;
+        this.leastBestStayGeneration = leastBestStayGeneration;
+        this.maxFitnessDifferenceBetweenBestAndWorst = maxFitnessDifferenceBetweenBestAndWorst;
+        this.solutionReportList = new ArrayList<>();
     }
 
     /**
@@ -59,7 +136,7 @@ public final class TspSolver implements Runnable {
      * If the {@code baseDir} is empty, set it to the value from {@code DataExtractor}, and get data of TSP by default.
      * If the {@code baseDir} is not empty, get data of TSP according to it.
      */
-    public void init() {
+    private void init() {
         if (baseDir.isEmpty()) {
             List<Object> tsp = tspLocal.get();
             baseDir = (String) tsp.get(0);
@@ -86,52 +163,119 @@ public final class TspSolver implements Runnable {
 
     @Override
     public void run() {
-        long startTime = System.currentTimeMillis();
-
+        /* Initializes this TSP solver. */
         init();
-        SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
-                .populationSize(30).withCrossoverProbability(0.96).withMutationProbability(0.60)
-                .withGenerationOperator(new RandomGeneratingOperator(4))
-                .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(36, 1))
-                .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(12, 2))
-                .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(36, 3))
-                .withGenerationOperator(new ConvexHullDivisionGeneratingOperator(12))
-                .withCrossoverOperator(new SinglePointCrossoverOperator(2, 20))
-                .withCrossoverOperator(new SectionCrossoverOperator(3))
-                .withCrossoverOperator(new NearestNeighborCrossoverOperator(95))
-                .withMutationOperator(new MultiPointMutationOperator(20, 5))
-                .withMutationOperator(new RangeReversingMutationOperator(30, 65))
-                .withMutationOperator(new RangeReversingMutationOperator(50, 15))
-                .withSelectionOperator(new RouletteSelectionOperator(100))
-                .withTopX(2)
-                .withTopY(4)
-                .withTopZ(3)
-                .withBestQueueSize(200)
-                .build();
-        solutionGroup.initialize();
+        int numberOfLoci = getPoints().size();
 
-        long initEndTime = System.currentTimeMillis();
-        double initUsedTime = (double) (initEndTime - startTime) / 1000;
-        log.info(String.format("[%d] Population initialization finished. It took time %ss.", idLocal.get(), initUsedTime));
-        try {
-            solutionGroup.evolve(new StopCondition(500, 500, 1e-7));
+        for (int time = 1; time <= calTime; ++time) {
+            SolutionGroup solutionGroup = SolutionGroup.Builder.ofNew()
+                    /* Traditional GA parameters. */
+                    .populationSize(populationSize)
+                    .withCrossoverProbability(crossoverProbability)
+                    .withMutationProbability(mutationProbability)
+                    /* Generating strategy. */
+                    .withGenerationOperator(new RandomGeneratingOperator(4))
+                    .withGenerationOperator(new NearestKNeighborsGreedyGeneratingOperator(18, 1))
+                    .withGenerationOperator(new ShortestKEdgeGreedyGeneratingOperator(12, 2))
+                    .withGenerationOperator(new ConvexHullConstrictionGeneratingOperator(48, 3))
+                    .withGenerationOperator(new ConvexHullDivisionGeneratingOperator(18))
+                    /* Crossover strategy. */
+                    .withCrossoverOperator(new SinglePointCrossoverOperator(10, (int) (numberOfLoci * 0.050)))
+                    .withCrossoverOperator(new SinglePointCrossoverOperator(10, (int) (numberOfLoci * 0.100)))
+                    .withCrossoverOperator(new SinglePointCrossoverOperator(10, (int) (numberOfLoci * 0.300)))
+                    .withCrossoverOperator(new SectionCrossoverOperator(10))
+                    .withCrossoverOperator(new NearestNeighborCrossoverOperator(60))
+                    /* Mutation strategy. */
+                    .withMutationOperator(new MultiPointMutationOperator(10, (int) (numberOfLoci * 0.050)))
+                    .withMutationOperator(new MultiPointMutationOperator(10, (int) (numberOfLoci * 0.125)))
+                    .withMutationOperator(new RangeReversingMutationOperator(10, (int) (numberOfLoci * 0.125)))
+                    .withMutationOperator(new RangeReversingMutationOperator(20, (int) (numberOfLoci * 0.250)))
+                    .withMutationOperator(new RangeReversingMutationOperator(50, (int) (numberOfLoci * 0.650)))
+                    /* Selection strategy. */
+                    .withSelectionOperator(new RouletteSelectionOperator(100))
+                    .withTopX(topX)
+                    .withTopY(topY)
+                    .withTopZ(topZ)
+                    .withBestQueueSize(bestQueueSize)
+                    .build();
 
-            long evolutionEndTime = System.currentTimeMillis();
-            double EvolutionUsedTime = (double) (evolutionEndTime - initEndTime) / 1000;
-            log.info(String.format("[%d] Population evolution finished. It took time %ss.", idLocal.get(), EvolutionUsedTime));
-        } catch (Exception e) {
-            log.error(String.format("[%d] The evolution stopped because of exception: ", idLocal.get()), e);
-            throw new RuntimeException(e);
+            long beforeInit = System.currentTimeMillis();
+
+            /* Initializes population. */
+            solutionGroup.initialize();
+
+            long afterInit = System.currentTimeMillis();
+            double initUsedTime = (double) (afterInit - beforeInit) / 1000;
+            log.info(String.format("[%d] Population-%d initialization finished. It took time %ss.", idLocal.get(), time, initUsedTime));
+
+            try {
+                /* Evolution. */
+                solutionGroup.evolve(new StopCondition(leastGenerationNumber, leastBestStayGeneration, maxFitnessDifferenceBetweenBestAndWorst));
+
+                long afterEvolution = System.currentTimeMillis();
+                double evolutionUsedTime = (double) (afterEvolution - afterInit) / 1000;
+                log.info(String.format("[%d] Population-%d evolution finished. It took time %ss.", idLocal.get(), time, evolutionUsedTime));
+
+                /* Obtains the approximate optimal solution. */
+                Solution solution = solutionGroup.getBest();
+                int generationNumber = solutionGroup.getGen();
+                SolutionReport report = new SolutionReport(time, solution, generationNumber, initUsedTime, evolutionUsedTime);
+                solutionReportList.add(report);
+
+                /* Records the result. */
+                String result = reportSolution(solution, generationNumber);
+                log.info(String.format("[%d] Population-%d result is: %s", idLocal.get(), time, result));
+            } catch (Exception e) {
+                log.error(String.format("[%d] Population-%d evolution stopped because of exception: ", idLocal.get(), time), e);
+                throw new RuntimeException(e);
+            }
         }
-        Solution solution = solutionGroup.getBest();
-        int genNum = solutionGroup.getGen();
-        log.info(String.format("[%d] The optimal solution is: %s", idLocal.get(), optimalSolution));
-        log.info(String.format("[%d] The best solution is: %s", idLocal.get(), solution));
-        log.info(String.format("[%d] The quality of solution is: %.2f%%", idLocal.get(),
-                (solution.getDistance() - optimalSolution.getDistance()) / optimalSolution.getDistance() * 100));
-        log.info(String.format("[%d] The number of generations this algorithm has gone through: %d", idLocal.get(), genNum));
+
+        solutionReportList.sort(Comparator.reverseOrder());
+        Solution bestSolution = solutionReportList.get(0).solution;
+        double bestDistance = bestSolution.getDistance();
+        double bestQuality = (bestDistance - optimalSolution.getDistance()) / optimalSolution.getDistance();
+        averageDistance = solutionReportList.stream()
+                .map(SolutionReport::getDistance)
+                .reduce(0d, Double::sum) / calTime;
+        averageGenerationNumber = solutionReportList.stream()
+                .map(SolutionReport::getGenerationNumber)
+                .map(t -> (double)t)
+                .reduce(0d, Double::sum) / calTime;
+        averageInitUsedTime = solutionReportList.stream()
+                .map(SolutionReport::getInitUsedTime)
+                .reduce(0d, Double::sum) / calTime;
+        averageEvolutionUsedTime = solutionReportList.stream()
+                .map(SolutionReport::getEvolutionUsedTime)
+                .reduce(0d, Double::sum) / calTime;
+        double averageQuality = (averageDistance - optimalSolution.getDistance()) / optimalSolution.getDistance();
+        double averageAlgorithmUsedTime = averageInitUsedTime + averageEvolutionUsedTime;
+        log.info(String.format("[%d] All populations' calculation finished. Their result is\n" +
+                        "calculation times: %d\n" +
+                        "average generation number: %.2f\n" +
+                        "average initialization cost time: %.2fs\n" +
+                        "average evolution cost time: %.2fs\n" +
+                        "average overall cost time: %.2fs\n" +
+                        "average distance: %.3f [%.2f%%]\n" +
+                        "best obtained distance: %.3f [%.2f%%]\n" +
+                        "best obtained solution: %s\n" +
+                        "true optimal distance: %.3f [%.2f%%]\n" +
+                        "true optimal solution: %s",
+                idLocal.get(), calTime, averageGenerationNumber,
+                averageInitUsedTime, averageEvolutionUsedTime, averageAlgorithmUsedTime,
+                averageDistance, averageQuality * 100,
+                bestDistance, bestQuality * 100,
+                bestSolution,
+                optimalSolution.getDistance(), 0d,
+                optimalSolution));
 
         // TODO : 图形化遗传算法结果
+    }
+
+    private String reportSolution(Solution solution, int generationNumber) {
+        double quality = (solution.getDistance() - optimalSolution.getDistance()) / optimalSolution.getDistance() * 100;
+        return String.format("true optimal solution: [%.0f], approximate optimal solution: [%.0f], quality: [%.3f%%], generation number: %d, specific information: %s",
+                optimalSolution.getDistance(), solution.getDistance(), quality, generationNumber, solution);
     }
 
     public static void setDataExtractor(String str) {
@@ -196,14 +340,51 @@ public final class TspSolver implements Runnable {
             thread.start();
         }
 
-        // 经纬度的测试
-//        String testDir = Objects.requireNonNull(TspSolver.class.getClassLoader()
-//                .getResource("tsp_test/test_GEO")).getPath();
-//        setDataExtractor(testDir);
-//        for (int i = 1; i <= 5; i++) {
-//            TspSolver tspSolver = new TspSolver();
-//            Thread thread = new Thread(tspSolver);
-//            thread.start();
-//        }
+        String testDir = Objects.requireNonNull(TspSolver.class.getClassLoader()
+                .getResource("tsp_test/test_GEO")).getPath();
+        setDataExtractor(testDir);
+        for (int i = 1; i <= 1; i++) {
+            TspSolver tspSolver = new TspSolver();
+            Thread thread = new Thread(tspSolver);
+            thread.start();
+        }
+    }
+
+    private static class SolutionReport implements Comparable<SolutionReport> {
+
+        private int order;
+        private Solution solution;
+        private int generationNumber;
+        private double initUsedTime;
+        private double evolutionUsedTime;
+
+        SolutionReport(int order, Solution solution, int generationNumber, double initUsedTime, double evolutionUsedTime) {
+            this.order = order;
+            this.solution = solution;
+            this.generationNumber = generationNumber;
+            this.initUsedTime = initUsedTime;
+            this.evolutionUsedTime = evolutionUsedTime;
+        }
+
+        @Override
+        public int compareTo(SolutionReport o) {
+            return solution.compareTo(o.solution);
+        }
+
+        public int getGenerationNumber() {
+            return generationNumber;
+        }
+
+        public double getInitUsedTime() {
+            return initUsedTime;
+        }
+
+        public double getEvolutionUsedTime() {
+            return evolutionUsedTime;
+        }
+
+        public double getDistance() {
+            return solution.getDistance();
+        }
     }
 }

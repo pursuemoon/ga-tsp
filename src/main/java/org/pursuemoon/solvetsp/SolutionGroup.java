@@ -176,7 +176,6 @@ public final class SolutionGroup implements Population<Solution> {
 
             /* Inserts the best one of this generation into the priority queues. */
             if (bestQueueNatural.size() < bestQueueSize) {
-
                 bestQueueNatural.add(theBest);
                 bestQueueReverse.add(theBest);
             } else {
