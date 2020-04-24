@@ -9,6 +9,8 @@ import org.pursuemoon.solvetsp.Solution;
 import java.io.*;
 import java.util.*;
 import java.util.function.UnaryOperator;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Data reader, aiming to obtain formatted TSP points and optimal solutions.
@@ -17,37 +19,70 @@ public final class DataExtractor {
 
     private static Logger log = Logger.getLogger(DataExtractor.class);
 
-    private static final String defaultDir = Objects.requireNonNull(DataExtractor.class.getClassLoader()
-            .getResource("tsp_test/test_EUC_2D")).getPath();
+    private static final String TSP_TEST_DIR = "tsp_test/";
+    private static final String TSP_TEST_EUC_2D_DIR = "tsp_test/test_EUC_2D/";
+    private static final String TSP_TEST_GEO_DIR = "tsp_test/test_GEO/";
 
+    /** List of names of test directories. */
+    private List<String> testDirList;
+
+    /** Index of test directory being processed now. */
+    private int idx;
 
     private static Random random = new Random();
 
-    private List<File> testDirList;
-    private int idx;
-
-    public DataExtractor() {
-        this(defaultDir);
-    }
-
     /**
-     * Constructor with an absolute path of the tsp test directory of one type.
+     * Constructor of {@code DataExtractor} which initializes {@code testDirList}.
      *
-     * By now, the following directories are supported:
-     * 1. tsp_test/test_EUC_2D
-     * 2. tsp_test/test_GEO
-     *
-     * @param testTypeDir the absolute path of the test directory of one type
+     * Directories for test will be found inside jar archive.
      */
-    public DataExtractor(String testTypeDir) {
-        File file = new File(testTypeDir);
-        testDirList = Arrays.asList(Objects.requireNonNull(file.listFiles(File::isDirectory)));
-        if (testDirList.size() == 0) {
-            String m = String.format("There is no test directory in dir: %s.", testTypeDir);
-            log.error(m);
-            throw new RuntimeException(m);
+    public DataExtractor() {
+        testDirList = new ArrayList<>();
+        String jarPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+        try (JarFile jarFile = new JarFile(jarPath)) {
+            log.info(String.format("Started from jar file: %s", jarPath));
+            Enumeration<JarEntry> entryEnumeration = jarFile.entries();
+            while (entryEnumeration.hasMoreElements()) {
+                JarEntry jarEntry = entryEnumeration.nextElement();
+                if (isSelected(jarEntry)) {
+                    String entryName = jarEntry.getName();
+                    testDirList.add(entryName);
+                    log.info(String.format("Test directory found: %s", entryName));
+                }
+            }
+        } catch (IOException ioe) {
+            log.warn("Not started from command: java -jar archive_name.jar.");
+            String testPath = Objects.requireNonNull(getClass().getClassLoader().getResource(TSP_TEST_DIR)).getPath();
+            File file = new File(testPath);
+            File[] types = file.listFiles(File::isDirectory);
+            for (File type : Objects.requireNonNull(types)) {
+                String typeName = type.getName();
+                if (typeName.equals("test_EUC_2D") || typeName.equals("test_GEO")) {
+                    File[] dirs = type.listFiles(File::isDirectory);
+                    for (File dir : Objects.requireNonNull(dirs)) {
+                        String dirName = dir.getName();
+                        String entryName = TSP_TEST_DIR + typeName + "/" + dirName + "/";
+                        testDirList.add(entryName);
+                        log.info(String.format("Test directory found: %s", entryName));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            String m = "Extraction of test directory failed.";
+            log.error(m, e);
+            throw new RuntimeException(e);
+        }
+        if (testDirList.isEmpty()) {
+            log.warn("No directory is found.");
         }
         idx = 0;
+    }
+
+    private boolean isSelected(JarEntry jarEntry) {
+        String entryName = jarEntry.getName();
+        return (jarEntry.isDirectory() &&
+                !entryName.equals(TSP_TEST_EUC_2D_DIR) && !entryName.equals(TSP_TEST_GEO_DIR) &&
+                (entryName.startsWith(TSP_TEST_EUC_2D_DIR) || entryName.startsWith(TSP_TEST_GEO_DIR)));
     }
 
     /**
@@ -72,18 +107,19 @@ public final class DataExtractor {
             log.error(m);
             throw new RuntimeException(m);
         }
-        File file = testDirList.get(idx++);
-        String filePath = file.getPath();
-        String fileName = file.getName();
-        List<AbstractPoint> pList = extractPoints(String.format("%s/%s.tsp", filePath, fileName));
-        Solution solution = extractSolution(String.format("%s/%s.opt.tour", filePath, fileName), true);
+
+        String nextDir = testDirList.get(idx++);
+        String testDir = nextDir.substring(0, nextDir.length() - 1);
+        String dirName = testDir.substring(testDir.lastIndexOf("/") + 1);
+        List<AbstractPoint> pList = extractPointsByResource(String.format("%s/%s.tsp", testDir, dirName));
+        Solution solution = extractSolutionByResource(String.format("%s/%s.opt.tour", testDir, dirName), true);
         UnaryOperator<Double> fitnessFunction = calFitnessFunction(pList);
         @SuppressWarnings("all")
         double[][] distArray = new double[pList.size()][pList.size()];
         for (double[] doubles : distArray) {
             Arrays.fill(doubles, -1);
         }
-        return Arrays.asList(filePath, pList, solution, fitnessFunction, distArray, Boolean.FALSE);
+        return Arrays.asList(dirName, pList, solution, fitnessFunction, distArray, Boolean.FALSE);
     }
 
     /**
@@ -128,6 +164,45 @@ public final class DataExtractor {
     }
 
     /**
+     * Gets the list of points from the specified relative resource path.
+     *
+     * @param resourceDir the specified relative resource path
+     * @return the list of points
+     */
+    public static List<AbstractPoint> extractPointsByResource(String resourceDir) {
+        List<AbstractPoint> pList = new ArrayList<>();
+        try (InputStream stream = DataExtractor.class.getClassLoader().getResourceAsStream(resourceDir);
+             InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(stream));
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            String str;
+            int cnt = 0, typeOfPoint = 0;
+            while ((str = bufferedReader.readLine()) != null) {
+                if (++cnt <= 4 || cnt == 6 || typeOfPoint == 2 && cnt == 7)
+                    continue;
+                if (cnt == 5) {
+                    if (str.trim().endsWith("EUC_2D"))
+                        typeOfPoint = 1;
+                    else if (str.trim().endsWith("GEO"))
+                        typeOfPoint = 2;
+                    continue;
+                }
+                if (str.trim().equals("EOF")) break;
+                String[] strings = str.split("\\s+", 0);
+                int order = Integer.parseInt(!strings[0].isEmpty() ? strings[0] : strings[1]);
+                double d1 = Double.parseDouble(!strings[0].isEmpty() ? strings[1] : strings[2]);
+                double d2 = Double.parseDouble(!strings[0].isEmpty() ? strings[2] : strings[3]);
+                AbstractPoint point = (typeOfPoint == 1 ? new Euc2DPoint(order, d1, d2) : new GeoPoint(order, d1, d2));
+                pList.add(point);
+            }
+        } catch (Exception e) {
+            String m = String.format("Extraction of file [%s] failed.", resourceDir);
+            log.error(m, e);
+            throw new RuntimeException(e);
+        }
+        return pList;
+    }
+
+    /**
      * Gets the list of points from the specified absolute file path.
      *
      * @param fileDir the specified absolute file path
@@ -165,9 +240,54 @@ public final class DataExtractor {
     }
 
     /**
+     * Gets the optimal solution from the specified relative resource path.
+     *
+     * @param resourceDir the specified relative resource path
+     * @param beginWith1 true if the caller wants to let gene array begin with 1;
+     *                   false if the caller doesn't need that
+     * @return the optimal solution if the solution path exists, or {@code null} if not
+     */
+    public static Solution extractSolutionByResource(String resourceDir, boolean beginWith1) {
+        Solution solution;
+        try (InputStream stream = DataExtractor.class.getClassLoader().getResourceAsStream(resourceDir);
+             InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(stream));
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            ArrayList<Integer> integers = new ArrayList<>();
+            String str;
+            boolean reached = false;
+            while ((str = bufferedReader.readLine()) != null) {
+                if (str.trim().equals("-1"))
+                    break;
+                if (reached) {
+                    String[] strings = str.split("\\s+");
+                    for (String s : strings) {
+                        if (s.isEmpty())
+                            continue;
+                        integers.add(Integer.parseInt(s));
+                    }
+                }
+                if (str.trim().equals("TOUR_SECTION"))
+                    reached = true;
+            }
+            solution = new Solution(integers.toArray(new Integer[0]), beginWith1);
+        } catch (FileNotFoundException fnfe) {
+            String m = String.format("File [%s] was not found, so null will be returned.", resourceDir);
+            log.warn(m);
+            return null;
+        } catch (IOException e) {
+            String m = String.format("Extraction of file [%s] failed.", resourceDir);
+            log.error(m, e);
+            throw new RuntimeException(e);
+        }
+        return solution;
+    }
+
+    /**
      * Gets the optimal solution from the specified absolute file path.
      *
      * @param fileDir the specified absolute file path
+     * @param beginWith1 true if the caller wants to let gene array begin with 1;
+     *                   false if the caller doesn't need that
      * @return the optimal solution if the solution path exists, or {@code null} if not
      */
     public static Solution extractSolution(String fileDir, boolean beginWith1) {

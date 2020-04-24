@@ -76,13 +76,14 @@ public final class TspSolver implements Runnable {
      * Default constructor.
      */
     public TspSolver() {
-        this("", 8);
+        this("", 3);
     }
 
     /**
      * Default constructor with {@code baseDir}.
      *
      * @param baseDir the base direction of a specific TSP
+     * @param calTime the number of calculation time
      */
     public TspSolver(String baseDir, int calTime) {
         this(baseDir, calTime,
@@ -95,6 +96,7 @@ public final class TspSolver implements Runnable {
      * Constructor with {@code baseDir} and other specific parameters.
      *
      * @param baseDir the base direction of a specific TSP
+     * @param calTime the number of calculation time
      *
      * @param populationSize the population size of ga
      * @param crossoverProbability the probability of crossover of ga
@@ -250,7 +252,7 @@ public final class TspSolver implements Runnable {
                 .reduce(0d, Double::sum) / calTime;
         double averageQuality = (averageDistance - optimalSolution.getDistance()) / optimalSolution.getDistance();
         double averageAlgorithmUsedTime = averageInitUsedTime + averageEvolutionUsedTime;
-        log.info(String.format("[%d] All populations' calculation finished. Their result is\n" +
+        log.info(String.format("[%d] All populations' calculation finished. Their result is:\n" +
                         "calculation times: %d\n" +
                         "average generation number: %.2f\n" +
                         "average initialization cost time: %.2fs\n" +
@@ -276,10 +278,6 @@ public final class TspSolver implements Runnable {
         double quality = (solution.getDistance() - optimalSolution.getDistance()) / optimalSolution.getDistance() * 100;
         return String.format("true optimal solution: [%.0f], approximate optimal solution: [%.0f], quality: [%.3f%%], generation number: %d, specific information: %s",
                 optimalSolution.getDistance(), solution.getDistance(), quality, generationNumber, solution);
-    }
-
-    public static void setDataExtractor(String str) {
-        dataExtractor = new DataExtractor(str);
     }
 
     /**
@@ -335,15 +333,6 @@ public final class TspSolver implements Runnable {
 
     public static void main(String[] args) {
         for (int i = 1; i <= 1; ++i) {
-            TspSolver tspSolver = new TspSolver();
-            Thread thread = new Thread(tspSolver);
-            thread.start();
-        }
-
-        String testDir = Objects.requireNonNull(TspSolver.class.getClassLoader()
-                .getResource("tsp_test/test_GEO")).getPath();
-        setDataExtractor(testDir);
-        for (int i = 1; i <= 1; i++) {
             TspSolver tspSolver = new TspSolver();
             Thread thread = new Thread(tspSolver);
             thread.start();

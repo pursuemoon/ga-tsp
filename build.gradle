@@ -1,17 +1,49 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group 'org.seekmoon'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+    options.encoding 'UTF-8'
+}
+
+mainClassName = 'org.pursuemoon.solvetsp.TspSolver'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile "junit:junit:4.12"
+    testImplementation "junit:junit:4.12"
     implementation "log4j:log4j:1.2.17"
+}
+
+sourceSets {
+    main.java.srcDirs = ['src/main/java']
+    main.resources.srcDirs = ['src/main/resources']
+    test.java.srcDirs = ['src/test/java']
+    test.resources.srcDirs = ['src/test/resources']
+}
+
+jar {
+    from configurations.compileClasspath.collect { entry -> zipTree(entry) }
+    manifest {
+        attributes(
+                'Class-Path': configurations.compileClasspath.collect({ it.getName() }),
+                'Main-Class': 'org.pursuemoon.solvetsp.TspSolver'
+        )
+    }
+}
+
+javadoc {
+    options {
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+    }
 }
