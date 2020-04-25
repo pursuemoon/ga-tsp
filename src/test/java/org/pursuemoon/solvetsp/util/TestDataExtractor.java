@@ -2,9 +2,9 @@ package org.pursuemoon.solvetsp.util;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.pursuemoon.solvetsp.TspSolver;
+import org.pursuemoon.solvetsp.ga.TspSolver;
 import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
-import org.pursuemoon.solvetsp.Solution;
+import org.pursuemoon.solvetsp.ga.Solution;
 
 import java.io.*;
 import java.util.List;
@@ -70,9 +70,9 @@ public class TestDataExtractor {
     }
 
     @Test
-    public void testDefaultNew() {
-        DataExtractor dataExtractor = new DataExtractor();
-        List<Object> list = dataExtractor.nextTsp();
+    public void testDefaultNextTsp() {
+        DataExtractor dataExtractor = DataExtractor.instance;
+        List<Object> list = dataExtractor.getNextTsp();
         Assert.assertEquals(list.size(), 6);
     }
 }

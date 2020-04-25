@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.pursuemoon.solvetsp.util.geometry.Euc2DPoint;
 import org.pursuemoon.solvetsp.util.geometry.GeoPoint;
 import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
-import org.pursuemoon.solvetsp.Solution;
+import org.pursuemoon.solvetsp.ga.Solution;
 
 import java.io.*;
 import java.util.*;
@@ -18,6 +18,9 @@ import java.util.jar.JarFile;
 public final class DataExtractor {
 
     private static Logger log = Logger.getLogger(DataExtractor.class);
+
+    /** Singleton instance. */
+    public static DataExtractor instance = new DataExtractor();
 
     private static final String TSP_TEST_DIR = "tsp_test/";
     private static final String TSP_TEST_EUC_2D_DIR = "tsp_test/test_EUC_2D/";
@@ -36,7 +39,7 @@ public final class DataExtractor {
      *
      * Directories for test will be found inside jar archive.
      */
-    public DataExtractor() {
+    private DataExtractor() {
         testDirList = new ArrayList<>();
         String jarPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
         try (JarFile jarFile = new JarFile(jarPath)) {
@@ -73,7 +76,9 @@ public final class DataExtractor {
             throw new RuntimeException(e);
         }
         if (testDirList.isEmpty()) {
-            log.warn("No directory is found.");
+            log.warn("No case was found.");
+        } else {
+            log.info(String.format("%d test case(s) was found.", testDirList.size()));
         }
         idx = 0;
     }
@@ -83,6 +88,10 @@ public final class DataExtractor {
         return (jarEntry.isDirectory() &&
                 !entryName.equals(TSP_TEST_EUC_2D_DIR) && !entryName.equals(TSP_TEST_GEO_DIR) &&
                 (entryName.startsWith(TSP_TEST_EUC_2D_DIR) || entryName.startsWith(TSP_TEST_GEO_DIR)));
+    }
+
+    public List<String> getTestDirList() {
+        return testDirList;
     }
 
     /**
@@ -101,14 +110,34 @@ public final class DataExtractor {
      *
      * @return the list that represents a TSP
      */
-    public List<Object> nextTsp() {
-        if (idx == testDirList.size()) {
-            String m = "No more TSP test cases.";
+    public List<Object> getNextTsp() {
+        return getTspByIndex(idx++);
+    }
+
+    /**
+     * Gets a TSP by index.
+     *
+     * The first element is its name.
+     * The second element is its points.
+     * The third element is its optimal solution if it exists, or {@code null} if not.
+     * The forth element is a fitness function which is adapted to this TSP.
+     *      Specifically, the fitness function is: fitness(distance) = 1 / (C * distance + 1e-5), and C depends on
+     *      the TSP being solved.
+     * The fifth element is a two-dimensional array representing distances between each two points.
+     *      This array is filled with -1, which means no distance has been calculated.
+     * The sixth element is a Boolean object which representing if the distance array fully calculated.
+     *      Its default value is {@code false}. If it is fully calculated, it's {@code true}.
+     *
+     * @param index index of a TSP in {@code testDirList}
+     * @return the list that represents a TSP
+     */
+    public List<Object> getTspByIndex(int index) {
+        if (index >= testDirList.size() || index < 0) {
+            String m = String.format("Illegal index: size = %d, index = %d", testDirList.size(), index);
             log.error(m);
             throw new RuntimeException(m);
         }
-
-        String nextDir = testDirList.get(idx++);
+        String nextDir = testDirList.get(index);
         String testDir = nextDir.substring(0, nextDir.length() - 1);
         String dirName = testDir.substring(testDir.lastIndexOf("/") + 1);
         List<AbstractPoint> pList = extractPointsByResource(String.format("%s/%s.tsp", testDir, dirName));
