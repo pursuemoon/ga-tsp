@@ -24,6 +24,14 @@ public class Euc2DPoint extends AbstractPoint implements Comparable<Euc2DPoint> 
         this.y = y;
     }
 
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
     @Override
     public double distanceTo(AbstractPoint o) {
         if (!(o instanceof Euc2DPoint))

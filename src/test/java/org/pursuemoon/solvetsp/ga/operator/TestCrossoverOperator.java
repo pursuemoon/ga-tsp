@@ -3,9 +3,6 @@ package org.pursuemoon.solvetsp.ga.operator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.pursuemoon.solvetsp.ga.Solution;
-import org.pursuemoon.solvetsp.ga.operator.NearestNeighborCrossoverOperator;
-import org.pursuemoon.solvetsp.ga.operator.RandomGeneratingOperator;
-import org.pursuemoon.solvetsp.ga.operator.SinglePointCrossoverOperator;
 
 import java.util.BitSet;
 import java.util.List;

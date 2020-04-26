@@ -3,9 +3,10 @@ package org.pursuemoon.solvetsp.ga;
 import org.apache.log4j.Logger;
 import org.pursuemoon.solvetsp.ga.operator.*;
 import org.pursuemoon.solvetsp.util.DataExtractor;
+import org.pursuemoon.solvetsp.util.Painter;
 import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
+import org.pursuemoon.solvetsp.util.geometry.Euc2DPoint;
 
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
@@ -269,6 +270,12 @@ public final class TspSolver implements Runnable {
                 optimalSolution);
 
         log.info(String.format("[%d] %s", idLocal.get(), report));
+
+        if (getPoints().get(0) instanceof Euc2DPoint) {
+            Painter.paint(getPoints(), bestSolution);
+        } else {
+            log.warn("This type of point couldn't be painted.");
+        }
     }
 
     private String reportSolution(Solution solution, int generationNumber) {
@@ -288,6 +295,15 @@ public final class TspSolver implements Runnable {
 
     public String getReport() {
         return report;
+    }
+
+    /**
+     * Gets the name of the TSP case being solved.
+     *
+     * @return the name of the TSP being solved
+     */
+    public static String getTestCaseName() {
+        return (String) tspLocal.get().get(0);
     }
 
     /**

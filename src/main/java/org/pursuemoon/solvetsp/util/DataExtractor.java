@@ -90,6 +90,11 @@ public final class DataExtractor {
                 (entryName.startsWith(TSP_TEST_EUC_2D_DIR) || entryName.startsWith(TSP_TEST_GEO_DIR)));
     }
 
+    /**
+     * Gets the list of test cases found.
+     *
+     * @return list of test cases found
+     */
     public List<String> getTestDirList() {
         return testDirList;
     }

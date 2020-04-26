@@ -3,8 +3,6 @@ package org.pursuemoon.solvetsp.ga.operator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.pursuemoon.solvetsp.ga.Solution;
-import org.pursuemoon.solvetsp.ga.operator.RandomGeneratingOperator;
-import org.pursuemoon.solvetsp.ga.operator.RouletteSelectionOperator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,6 +39,6 @@ public class TestSelectionOperator {
             else
                 no++;
         }
-        Assert.assertTrue(yes >= 10 * no);
+        Assert.assertTrue(yes >= no);
     }
 }
