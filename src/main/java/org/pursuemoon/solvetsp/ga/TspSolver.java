@@ -77,29 +77,9 @@ public final class TspSolver implements Runnable {
     private String report;
 
     /**
-     * Default constructor.
-     */
-    public TspSolver() {
-        this(-1, 3);
-    }
-
-    /**
-     * Default constructor with {@code baseDir}.
+     * Constructor with all needed parameters.
      *
      * @param index the index of the TSP going to solve; -1 means next TSP in default order
-     * @param calTime the number of calculation time
-     */
-    public TspSolver(int index, int calTime) {
-        this(calTime,
-                35, 0.96, 0.66,
-                2, 5, 3,
-                2000, 500, 1000, 1e-6);
-        this.index = index;
-    }
-
-    /**
-     * Constructor with {@code baseDir} and other specific parameters.
-     *
      * @param calTime the number of calculation time
      *
      * @param populationSize the population size of ga
@@ -109,8 +89,8 @@ public final class TspSolver implements Runnable {
      * @param topX the number of solutions before crossover
      * @param topY the number of solutions before mutation
      * @param topZ the number of solutions before selection
-     * @param leastGenerationNumber the least number of evolution generation
      *
+     * @param leastGenerationNumber the least number of evolution generation
      * @param bestQueueSize one of stop condition,
      *                      the size of the queue of best individuals
      * @param leastBestStayGeneration one of stop condition,
@@ -118,10 +98,11 @@ public final class TspSolver implements Runnable {
      * @param maxFitnessDifferenceBetweenBestAndWorst one of stop condition,
      *                                                the max difference of fitness of the best and worst individual in the best queue
      */
-    public TspSolver(int calTime,
+    public TspSolver(int index, int calTime,
                      int populationSize, double crossoverProbability, double mutationProbability,
                      int topX, int topY, int topZ,
                      int leastGenerationNumber, int bestQueueSize, int leastBestStayGeneration, double maxFitnessDifferenceBetweenBestAndWorst) {
+        this.index = index;
         this.calTime = calTime;
         this.populationSize = populationSize;
         this.crossoverProbability = crossoverProbability;
@@ -226,6 +207,8 @@ public final class TspSolver implements Runnable {
             }
         }
 
+        log.info(String.format("[%d] Evolution of all populations finished.", idLocal.get()));
+
         solutionReportList.sort(Comparator.reverseOrder());
         Solution bestSolution = solutionReportList.get(0).solution;
         double bestDistance = bestSolution.getDistance();
@@ -248,7 +231,16 @@ public final class TspSolver implements Runnable {
 
         String dirName = (String) tspLocal.get().get(0);
 
-        log.info(String.format("[%d] Evolution of all populations finished.", idLocal.get()));
+        int[] bestGene = bestSolution.getClonedGene();
+        List<Integer> bestGeneList = new ArrayList<>();
+        for (int i : bestGene) {
+            bestGeneList.add(i);
+        }
+        int[] optimalGene = optimalSolution.getClonedGene();
+        List<Integer> optimalGeneList = new ArrayList<>();
+        for (int i : optimalGene) {
+            optimalGeneList.add(i);
+        }
 
         report = String.format("Here is the report of the improved genetic algorithm of solving [%s]:\n" +
                         "calculation times: %d\n" +
@@ -265,12 +257,13 @@ public final class TspSolver implements Runnable {
                 averageInitUsedTime, averageEvolutionUsedTime, averageAlgorithmUsedTime,
                 averageDistance, averageQuality * 100,
                 bestDistance, bestQuality * 100,
-                bestSolution,
+                bestGeneList,
                 optimalSolution.getDistance(), 0d,
-                optimalSolution);
+                optimalGeneList);
 
         log.info(String.format("[%d] %s", idLocal.get(), report));
 
+        /* Paints the best obtained result. */
         if (getPoints().get(0) instanceof Euc2DPoint) {
             Painter.paint(getPoints(), bestSolution);
         } else {

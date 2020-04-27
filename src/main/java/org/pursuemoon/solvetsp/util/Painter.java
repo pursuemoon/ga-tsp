@@ -5,8 +5,12 @@ import org.pursuemoon.solvetsp.ga.TspSolver;
 import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 import org.pursuemoon.solvetsp.util.geometry.Euc2DPoint;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public final class Painter {
@@ -21,7 +25,13 @@ public final class Painter {
     private static final int MAGNITUDE_BASE = 2;
     private static final int POINT_RADIUS = 5;
 
-
+    /**
+     * Paints the solution of a TSP whose point set is {@code pList}.
+     *
+     * @param pList point set of a TSP
+     * @param solution solution to be painted
+     * @throws UnsupportedOperationException if the type of point is not supported being painted
+     */
     public static void paint(List<? extends AbstractPoint> pList, Solution solution) throws UnsupportedOperationException {
         String caseName = TspSolver.getTestCaseName();
         new Frame(caseName, pList, solution);
@@ -32,14 +42,30 @@ public final class Painter {
         Frame(String name, List<? extends AbstractPoint> pList, Solution solution) {
             super(name);
             setSize(FRAME_WIDTH, FRAME_HEIGHT + FRAME_MARGIN);
-            setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             setLocationRelativeTo(null);
             setVisible(true);
 
             Container container = getContentPane();
             container.setLayout(new BorderLayout());
+
             Canvas canvas = new Canvas(pList, solution);
             container.add(BorderLayout.CENTER, canvas);
+
+            /* Saves the painting of result as a file. */
+            BufferedImage image = new BufferedImage(container.getWidth(), container.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2d = image.createGraphics();
+            container.printAll(g2d);
+            try {
+                File dir = new File("imgs");
+                boolean dirExists = (dir.exists() || dir.mkdirs());
+                if (dirExists) {
+                    File file = new File(String.format("imgs/%s.jpg", name));
+                    ImageIO.write(image, "jpg", file);
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
         }
     }
 
@@ -64,8 +90,8 @@ public final class Painter {
         }
 
         @Override
-        public void paint(Graphics g) {
-            super.paint(g);
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             drawRectOnCanvas(g, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);

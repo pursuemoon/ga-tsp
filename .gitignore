@@ -4,4 +4,5 @@
 .gradle/
 build/
 logs/
+imgs/
 !gradle/wrapper/gradle-wrapper.jar
