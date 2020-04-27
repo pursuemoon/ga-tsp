@@ -53,9 +53,9 @@ public final class Painter {
             container.add(BorderLayout.CENTER, canvas);
 
             /* Saves the painting of result as a file. */
-            BufferedImage image = new BufferedImage(container.getWidth(), container.getHeight(), BufferedImage.TYPE_INT_RGB);
+            BufferedImage image = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = image.createGraphics();
-            container.printAll(g2d);
+            canvas.printAll(g2d);
             try {
                 File dir = new File("imgs");
                 boolean dirExists = (dir.exists() || dir.mkdirs());
