@@ -36,6 +36,9 @@ public final class TspSolver implements Runnable {
     /** Number of calculations for the same TSP. */
     private int calTime;
 
+    /** If the painting of result is visible. */
+    private boolean visible;
+
     /* Parameters of traditional GA. */
 
     private int populationSize;
@@ -81,6 +84,7 @@ public final class TspSolver implements Runnable {
      *
      * @param index the index of the TSP going to solve; -1 means next TSP in default order
      * @param calTime the number of calculation time
+     * @param visible if the result painting is visible
      *
      * @param populationSize the population size of ga
      * @param crossoverProbability the probability of crossover of ga
@@ -98,12 +102,13 @@ public final class TspSolver implements Runnable {
      * @param maxFitnessDifferenceBetweenBestAndWorst one of stop condition,
      *                                                the max difference of fitness of the best and worst individual in the best queue
      */
-    public TspSolver(int index, int calTime,
+    public TspSolver(int index, int calTime, boolean visible,
                      int populationSize, double crossoverProbability, double mutationProbability,
                      int topX, int topY, int topZ,
                      int leastGenerationNumber, int bestQueueSize, int leastBestStayGeneration, double maxFitnessDifferenceBetweenBestAndWorst) {
         this.index = index;
         this.calTime = calTime;
+        this.visible = visible;
         this.populationSize = populationSize;
         this.crossoverProbability = crossoverProbability;
         this.mutationProbability = mutationProbability;
@@ -190,17 +195,18 @@ public final class TspSolver implements Runnable {
 
                 long afterEvolution = System.currentTimeMillis();
                 double evolutionUsedTime = (double) (afterEvolution - afterInit) / 1000;
-                log.info(String.format("[%d] Population-%d evolution finished. It took time %ss.", idLocal.get(), time, evolutionUsedTime));
+                int generationNumber = solutionGroup.getGen();
+                log.info(String.format("[%d] Population-%d evolution finished. " +
+                        "It went through %d generations and took time %ss.", idLocal.get(), time, generationNumber, evolutionUsedTime));
 
                 /* Obtains the approximate optimal solution. */
                 Solution solution = solutionGroup.getBest();
-                int generationNumber = solutionGroup.getGen();
                 SolutionReport report = new SolutionReport(time, solution, generationNumber, initUsedTime, evolutionUsedTime);
                 solutionReportList.add(report);
 
                 /* Records the result. */
                 String result = reportSolution(solution, generationNumber);
-                log.info(String.format("[%d] Population-%d result is: %s", idLocal.get(), time, result));
+                log.debug(String.format("[%d] Population-%d result is: %s", idLocal.get(), time, result));
             } catch (Exception e) {
                 log.error(String.format("[%d] Population-%d evolution stopped because of exception: ", idLocal.get(), time), e);
                 throw new RuntimeException(e);
@@ -265,7 +271,7 @@ public final class TspSolver implements Runnable {
 
         /* Paints the best obtained result. */
         if (getPoints().get(0) instanceof Euc2DPoint) {
-            Painter.paint(getPoints(), bestSolution);
+            Painter.paint(visible, getPoints(), bestSolution);
         } else {
             log.warn("This type of point couldn't be painted.");
         }

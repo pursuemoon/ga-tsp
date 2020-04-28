@@ -32,19 +32,20 @@ public final class Painter {
      * @param solution solution to be painted
      * @throws UnsupportedOperationException if the type of point is not supported being painted
      */
-    public static void paint(List<? extends AbstractPoint> pList, Solution solution) throws UnsupportedOperationException {
+    public static void paint(boolean visible, List<? extends AbstractPoint> pList, Solution solution)
+            throws UnsupportedOperationException {
         String caseName = TspSolver.getTestCaseName();
-        new Frame(caseName, pList, solution);
+        new Frame(caseName, visible, pList, solution);
     }
 
     private static class Frame extends JFrame {
 
-        Frame(String name, List<? extends AbstractPoint> pList, Solution solution) {
+        Frame(String name, boolean visible, List<? extends AbstractPoint> pList, Solution solution) {
             super(name);
             setSize(FRAME_WIDTH, FRAME_HEIGHT + FRAME_MARGIN);
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             setLocationRelativeTo(null);
-            setVisible(true);
+            setVisible(visible);
 
             Container container = getContentPane();
             container.setLayout(new BorderLayout());

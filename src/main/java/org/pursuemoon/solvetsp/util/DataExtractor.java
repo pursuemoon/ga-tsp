@@ -50,7 +50,7 @@ public final class DataExtractor {
                 if (isSelected(jarEntry)) {
                     String entryName = jarEntry.getName();
                     testDirList.add(entryName);
-                    log.info(String.format("Test directory found: %s", entryName));
+                    log.debug(String.format("Test directory found: %s", entryName));
                 }
             }
         } catch (IOException ioe) {
@@ -66,7 +66,7 @@ public final class DataExtractor {
                         String dirName = dir.getName();
                         String entryName = TSP_TEST_DIR + typeName + "/" + dirName + "/";
                         testDirList.add(entryName);
-                        log.info(String.format("Test directory found: %s", entryName));
+                        log.debug(String.format("Test directory found: %s", entryName));
                     }
                 }
             }
@@ -78,7 +78,7 @@ public final class DataExtractor {
         if (testDirList.isEmpty()) {
             log.warn("No case was found.");
         } else {
-            log.info(String.format("%d test case(s) was found.", testDirList.size()));
+            log.debug(String.format("%d test case(s) was found.", testDirList.size()));
         }
         idx = 0;
     }
