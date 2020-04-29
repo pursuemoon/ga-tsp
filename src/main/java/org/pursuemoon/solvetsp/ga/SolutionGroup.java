@@ -189,8 +189,8 @@ public final class SolutionGroup implements Population<Solution> {
             }
 
             /* Decides if the evolution should be stopped. */
-            if (stopCondition instanceof Condition.MaxGenerationCondition) {
-                if (((Condition.MaxGenerationCondition) stopCondition).isMet(gen)) {
+            if (stopCondition instanceof Condition.MinGenerationCondition) {
+                if (((Condition.MinGenerationCondition) stopCondition).isMet(gen)) {
                     stopFlag = true;
                 }
             } else if (stopCondition instanceof Condition.BestWorstDifferenceCondition) {

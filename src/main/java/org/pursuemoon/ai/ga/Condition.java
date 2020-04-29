@@ -9,8 +9,8 @@ public class Condition {
         throw new UnsupportedOperationException("The condition check operation is not supported.");
     }
 
-    public static MaxGenerationCondition ofMaxGenerationCondition(int maxGeneration) {
-        return new MaxGenerationCondition(maxGeneration);
+    public static MinGenerationCondition ofMinGenerationCondition(int minGeneration) {
+        return new MinGenerationCondition(minGeneration);
     }
 
     public static BestStayGenerationCondition ofBestStayGenerationCondition(int stayGeneration) {
@@ -23,22 +23,22 @@ public class Condition {
 
     /**
      * If the generations of evolution of a population is equals to or greater than
-     * the value of {@code maxGeneration}, this condition is met.
+     * the value of {@code minGeneration}, this condition is met.
      */
-    public static class MaxGenerationCondition extends Condition {
+    public static class MinGenerationCondition extends Condition {
 
-        protected int maxGeneration;
+        protected int minGeneration;
 
-        protected MaxGenerationCondition(int maxGeneration) {
-            this.maxGeneration = maxGeneration;
+        protected MinGenerationCondition(int minGeneration) {
+            this.minGeneration = minGeneration;
         }
 
-        public int getMaxGeneration() {
-            return maxGeneration;
+        public int getMinGeneration() {
+            return minGeneration;
         }
 
         public boolean isMet(int gen) {
-            return gen >= maxGeneration;
+            return gen >= minGeneration;
         }
     }
 

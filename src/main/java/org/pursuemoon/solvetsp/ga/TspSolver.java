@@ -54,6 +54,7 @@ public final class TspSolver implements Runnable {
     /* Parameters of stop condition. */
 
     private int leastGenerationNumber;
+    private int limitGenerationNumber;
     private int bestQueueSize;
     private int leastBestStayGeneration;
     private double maxFitnessDifferenceBetweenBestAndWorst;
@@ -95,6 +96,7 @@ public final class TspSolver implements Runnable {
      * @param topZ the number of solutions before selection
      *
      * @param leastGenerationNumber the least number of evolution generation
+     * @param limitGenerationNumber the limit of evolution generation, preventing calculation time to be too long
      * @param bestQueueSize one of stop condition,
      *                      the size of the queue of best individuals
      * @param leastBestStayGeneration one of stop condition,
@@ -105,7 +107,8 @@ public final class TspSolver implements Runnable {
     public TspSolver(int index, int calTime, boolean visible,
                      int populationSize, double crossoverProbability, double mutationProbability,
                      int topX, int topY, int topZ,
-                     int leastGenerationNumber, int bestQueueSize, int leastBestStayGeneration, double maxFitnessDifferenceBetweenBestAndWorst) {
+                     int leastGenerationNumber, int limitGenerationNumber,
+                     int bestQueueSize, int leastBestStayGeneration, double maxFitnessDifferenceBetweenBestAndWorst) {
         this.index = index;
         this.calTime = calTime;
         this.visible = visible;
@@ -116,6 +119,7 @@ public final class TspSolver implements Runnable {
         this.topY = topY;
         this.topZ = topZ;
         this.leastGenerationNumber = leastGenerationNumber;
+        this.limitGenerationNumber = limitGenerationNumber;
         this.bestQueueSize = bestQueueSize;
         this.leastBestStayGeneration = leastBestStayGeneration;
         this.maxFitnessDifferenceBetweenBestAndWorst = maxFitnessDifferenceBetweenBestAndWorst;
@@ -191,7 +195,8 @@ public final class TspSolver implements Runnable {
 
             try {
                 /* Evolution. */
-                solutionGroup.evolve(new StopCondition(leastGenerationNumber, leastBestStayGeneration, maxFitnessDifferenceBetweenBestAndWorst));
+                solutionGroup.evolve(new StopCondition(leastGenerationNumber, limitGenerationNumber,
+                        leastBestStayGeneration, maxFitnessDifferenceBetweenBestAndWorst));
 
                 long afterEvolution = System.currentTimeMillis();
                 double evolutionUsedTime = (double) (afterEvolution - afterInit) / 1000;
@@ -207,6 +212,14 @@ public final class TspSolver implements Runnable {
                 /* Records the result. */
                 String result = reportSolution(solution, generationNumber);
                 log.debug(String.format("[%d] Population-%d result is: %s", idLocal.get(), time, result));
+
+                /* Paints the best obtained result. */
+                if (getPoints().get(0) instanceof Euc2DPoint) {
+                    Painter.paint(getTestCaseName(), visible, getPoints(), solution);
+                    log.info(String.format("[%d] Population-%d best obtained solution was painted.",idLocal.get(), time));
+                } else {
+                    log.warn(String.format("[%d] This type of point couldn't be painted.", idLocal.get()));
+                }
             } catch (Exception e) {
                 log.error(String.format("[%d] Population-%d evolution stopped because of exception: ", idLocal.get(), time), e);
                 throw new RuntimeException(e);
@@ -268,13 +281,6 @@ public final class TspSolver implements Runnable {
                 optimalGeneList);
 
         log.info(String.format("[%d] %s", idLocal.get(), report));
-
-        /* Paints the best obtained result. */
-        if (getPoints().get(0) instanceof Euc2DPoint) {
-            Painter.paint(visible, getPoints(), bestSolution);
-        } else {
-            log.warn("This type of point couldn't be painted.");
-        }
     }
 
     private String reportSolution(Solution solution, int generationNumber) {

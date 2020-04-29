@@ -1,7 +1,6 @@
 package org.pursuemoon.solvetsp.util;
 
 import org.pursuemoon.solvetsp.ga.Solution;
-import org.pursuemoon.solvetsp.ga.TspSolver;
 import org.pursuemoon.solvetsp.util.geometry.AbstractPoint;
 import org.pursuemoon.solvetsp.util.geometry.Euc2DPoint;
 
@@ -23,7 +22,6 @@ public final class Painter {
     private static final int FRAME_HEIGHT = CANVAS_HEIGHT + FRAME_MARGIN * 2;
 
     private static final int MAGNITUDE_BASE = 2;
-    private static final int POINT_RADIUS = 5;
 
     /**
      * Paints the solution of a TSP whose point set is {@code pList}.
@@ -32,9 +30,8 @@ public final class Painter {
      * @param solution solution to be painted
      * @throws UnsupportedOperationException if the type of point is not supported being painted
      */
-    public static void paint(boolean visible, List<? extends AbstractPoint> pList, Solution solution)
+    public static void paint(String caseName, boolean visible, List<? extends AbstractPoint> pList, Solution solution)
             throws UnsupportedOperationException {
-        String caseName = TspSolver.getTestCaseName();
         new Frame(caseName, visible, pList, solution);
     }
 
@@ -74,7 +71,8 @@ public final class Painter {
 
         private double markX, markY;
         private double scale;
-        int exp;
+        private int exp;
+        private int pointRadius;
 
         List<? extends AbstractPoint> pList;
         Solution solution;
@@ -117,7 +115,7 @@ public final class Painter {
         private void drawPoint(Graphics g, double x, double y) {
             int intX = (int) ((x - markX) / scale);
             int intY = (int) ((y - markY) / scale);
-            drawPointOnCanvas(g, intX, intY);
+            drawPointOnCanvas(g, intX, intY, pointRadius);
         }
 
         private void drawLine(Graphics g, double x1, double y1, double x2, double y2) {
@@ -147,14 +145,16 @@ public final class Painter {
             g.drawRect((int) (FRAME_MARGIN * 1.5) + x, (int) (FRAME_MARGIN * 0.6) + y, width, height);
         }
 
-        private void drawPointOnCanvas(Graphics g, int x, int y) {
+        private void drawPointOnCanvas(Graphics g, int x, int y, int pointRadius) {
             Color color = Color.RED;
             g.setColor(color);
-            g.fillOval((int) (FRAME_MARGIN * 1.5) - POINT_RADIUS + x, (int) (FRAME_MARGIN * 0.6) - POINT_RADIUS + y,
-                    POINT_RADIUS * 2, POINT_RADIUS * 2);
+            g.fillOval((int) (FRAME_MARGIN * 1.5) - pointRadius + x, (int) (FRAME_MARGIN * 0.6) - pointRadius + y,
+                    pointRadius * 2, pointRadius * 2);
         }
 
         private void calScale() {
+            pointRadius = (pList.size() >= 1500 ? 3 : 5);
+
             double minX = Double.MAX_VALUE;
             double minY = Double.MAX_VALUE;
             double maxX = Double.MIN_VALUE;
