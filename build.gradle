@@ -47,3 +47,20 @@ javadoc {
         charSet = 'UTF-8'
     }
 }
+
+project.afterEvaluate {
+    check.dependsOn deleteFiles
+}
+
+task deleteFiles(dependsOn: test) {
+    doLast {
+        String rootPath = rootProject.projectDir.absolutePath
+        List<String> list = ["$rootPath/logs", "$rootPath/imgs"]
+        list.forEach({ element ->
+            if (file(element).exists()) {
+                delete element
+                println element + " deleted"
+            }
+        })
+    }
+}
