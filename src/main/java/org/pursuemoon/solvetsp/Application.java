@@ -272,7 +272,6 @@ public class Application {
                     bestQueueSize, leastBestStayGeneration, maxFitnessDifferenceBetweenBestAndWorst);
             pool.execute(tspSolver);
         }
-        System.exit(0);
     }
 
     private static void testCase(int index, int calTime, boolean visible,
