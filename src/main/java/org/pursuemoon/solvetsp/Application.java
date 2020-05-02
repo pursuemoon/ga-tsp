@@ -296,7 +296,6 @@ public class Application {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.exit(0);
     }
 }
 
