@@ -1,6 +1,7 @@
 package org.pursuemoon.solvetsp.ga.operator;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pursuemoon.solvetsp.ga.Solution;
 import org.pursuemoon.solvetsp.ga.TspSolver;
@@ -12,6 +13,13 @@ import java.util.*;
 import static java.lang.Double.*;
 
 public class TestGeneratingOperator {
+
+    @BeforeClass
+    public static void setTspCh130() {
+        for (int i = 0; i < 5; i++) {
+            DataExtractor.instance.getNextTsp();
+        }
+    }
 
     @Test
     public void testRandomGeneratingOperator() {
@@ -50,9 +58,6 @@ public class TestGeneratingOperator {
 
     @Test
     public void testForComparison() {
-        for (int i = 0; i < 5; ++i) {
-            DataExtractor.instance.getNextTsp();
-        }
         ConvexHullDivisionGeneratingOperator division = new ConvexHullDivisionGeneratingOperator(100);
         final int times = 20;
         double minDistance = MAX_VALUE;
@@ -70,7 +75,7 @@ public class TestGeneratingOperator {
 //        System.out.println("\nDivision Average: " + average);
 //        System.out.println("Division Best: " + minDistance);
 
-        ConvexHullConstrictionGeneratingOperator constriction = new ConvexHullConstrictionGeneratingOperator(100, 3);
+        ConvexHullConstrictionGeneratingOperator constriction = new ConvexHullConstrictionGeneratingOperator(100, 1);
         minDistance = MAX_VALUE;
         sum = 0;
         for (int i = 1; i <= times; ++i) {
