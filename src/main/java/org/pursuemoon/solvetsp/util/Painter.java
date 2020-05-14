@@ -26,6 +26,8 @@ public final class Painter {
     /**
      * Paints the solution of a TSP whose point set is {@code pList}.
      *
+     * @param caseName name of the case
+     * @param visible whether the frame of painting is visible after painting
      * @param pList point set of a TSP
      * @param solution solution to be painted
      * @throws UnsupportedOperationException if the type of point is not supported being painted
