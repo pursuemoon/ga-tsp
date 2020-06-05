@@ -202,9 +202,9 @@ public class Application {
         String help = "";
         help += "Usage: java -jar JarArchiveName.jar [Parameters]\n";
         help += "******************* Here is all of optional parameters ******************\n";
-        help += "--help               Get the help manual like this\n";
-        help += "--cases              Get all test cases with their order number\n";
-        help += "--test all           Indicate that all cases should be tested\n";
+        help += "--help               Get the help manual like this.\n";
+        help += "--cases              Get all test cases with their order number.\n";
+        help += "--test all           Indicate that all cases should be tested.\n";
         help += "--test Number        Designate the case to be tested.\n";
         help += "--times Number       Designate the number of calculation time.\n" +
                 "                   Default value is 10.\n";
@@ -212,7 +212,7 @@ public class Application {
                 "                   Default value is 35.\n";
         help += "--pc Number          Designate the probability of crossover.\n" +
                 "                   Default value is 0.96.\n";
-        help += "--pm Number          Designate the probability of mutation\n" +
+        help += "--pm Number          Designate the probability of mutation.\n" +
                 "                   Default value is 0.66.\n";
         help += "--topx Number        Designate the number of individuals to remain\n" +
                 "                   before every crossover. Default value is 2.\n";
