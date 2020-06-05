@@ -59,7 +59,7 @@ Logs and images will be saved in `logs` and `imgs`, respectively.
 The following is all parameters that you can use and their meanings.
 
 Parameter         | Meaning
--                 | -
+----              | ----
 --help            | Get the help manual.
 --cases           | Get all test cases with their order number.
 --test all        | Indicate that all cases should be tested.
