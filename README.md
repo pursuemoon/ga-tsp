@@ -17,7 +17,7 @@ If you have locally installed __Gradle 5__ and correctly configure environment v
 $ gradle build
 ```
 
-If you haven't installed Gradle, the start up script of gradle provides an easy way for you. Choose the specific method that suits your platform. Remember to enter the root directory of this project first.
+If you haven't installed Gradle, the start up script of Gradle provides an easy way for you. Choose the specific method that suits your platform. Remember to enter the root directory of this project first.
 
 
 ### For Linux
@@ -56,7 +56,7 @@ $ java -jar ./build/libs/ga-tsp.jar --test 5 --times 1
 
 Logs and images will be saved in `logs` and `imgs`, respectively.
 
-The following is all parameters that you can use and their meanings.
+The following are all available parameters and their meanings.
 
 Parameter         | Meaning
 ----              | ----
